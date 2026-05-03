@@ -1,12 +1,23 @@
+import os
+from urllib.parse import urlparse
+
 class Config:
-    """Configuration class for the application"""
+    DATABASE_URL = os.environ.get('DATABASE_URL')
     
-    # Database configuration
-    DB_HOST = "localhost"
-    DB_NAME = "seacloud_db"
-    DB_USER = "postgres"
-    DB_PASSWORD = "admin123"  
-    DB_PORT = "5433"
+    if DATABASE_URL:
+        # Production (Render)
+        url = urlparse(DATABASE_URL)
+        DB_HOST = url.hostname
+        DB_NAME = url.path[1:]
+        DB_USER = url.username
+        DB_PASSWORD = url.password
+        DB_PORT = url.port or 5432
+    else:
+        # Local development
+        DB_HOST = "localhost"
+        DB_NAME = "seacloud_db"
+        DB_USER = "postgres"
+        DB_PASSWORD = "admin123"
+        DB_PORT = "5433"
     
-    # Flask configuration
     SECRET_KEY = "seacloud123"
