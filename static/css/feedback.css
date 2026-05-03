@@ -1,0 +1,202 @@
+/* Feedback Page Styles */
+.feedback-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+.feedback-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.feedback-header h1 {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.feedback-header p {
+    color: #8eafc0;
+    font-size: 16px;
+}
+
+.feedback-box {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    margin-bottom: 40px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+.form-group input, .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    background: rgba(11, 29, 46, 0.8);
+    color: white;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #00e5ff;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+/* Rating Stars */
+.rating-stars {
+    display: flex;
+    gap: 8px;
+}
+
+.star {
+    font-size: 28px;
+    cursor: pointer;
+    color: #cbd5e1;
+    transition: 0.2s;
+}
+
+.star:hover {
+    transform: scale(1.1);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #00b8d4, #0077b6);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 119, 182, 0.3);
+}
+
+.message {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+}
+
+.message.success {
+    background: #d4edda;
+    color: #155724;
+    display: block;
+}
+
+.message.error {
+    background: #f8d7da;
+    color: #721c24;
+    display: block;
+}
+
+/* Testimonials */
+.testimonials {
+    text-align: center;
+}
+
+.testimonials h2 {
+    color: white;
+    font-size: 22px;
+    margin-bottom: 25px;
+}
+
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.testimonial-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+}
+
+.testimonial-card .stars {
+    color: #ffc107;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.testimonial-card p {
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.testimonial-card h4 {
+    color: #00e5ff;
+    font-size: 13px;
+}
+
+/* Footer */
+.footer {
+    background: rgba(11, 29, 46, 0.95);
+    padding: 30px;
+    text-align: center;
+    margin-top: 40px;
+    border-top: 1px solid rgba(0, 184, 212, 0.3);
+}
+
+.footer p {
+    color: #8eafc0;
+    font-size: 12px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .feedback-container {
+        padding: 20px;
+    }
+    
+    .feedback-box {
+        padding: 20px;
+    }
+    
+    .feedback-header h1 {
+        font-size: 22px;
+    }
+    
+    .star {
+        font-size: 22px;
+    }
+    
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+}

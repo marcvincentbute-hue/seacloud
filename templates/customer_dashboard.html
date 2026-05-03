@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeaCloud - Customer Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>⛴️ SeaCloud</h2>
+        <a href="#" onclick="showPage('dashboard')">Dashboard</a>
+        <a href="#" onclick="showPage('book')">Book Ticket</a>
+        <a href="#" onclick="showPage('bookings')">My Bookings</a>
+        <a href="#" onclick="showPage('profile')">Profile</a>
+        <a href="#" onclick="logout()" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page active">
+            <div class="header">
+                <h1 id="welcomeName">Welcome!</h1>
+                <p>Your travel overview</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Bookings</h3>
+                    <div class="number" id="totalBookings">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Upcoming Trips</h3>
+                    <div class="number" id="upcomingTrips">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Completed Trips</h3>
+                    <div class="number" id="completedTrips">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Ticket Page -->
+    <div id="book-page" class="page">
+        <h2>Book a Ferry Ticket</h2>
+        
+        <!-- Filter Section - NAA DIRI (SA SULOD) -->
+        <div class="filter-section" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 12px;">
+            <h4>🔍 Filter Trips</h4>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                <select id="filterTime" style="padding: 8px; border-radius: 8px;">
+                    <option value="">All Times</option>
+                    <option value="morning">Morning (6AM - 12PM)</option>
+                    <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                    <option value="evening">Evening (5PM - 10PM)</option>
+                </select>
+                <select id="filterBoatType" style="padding: 8px; border-radius: 8px;">
+                    <option value="">All Boat Types</option>
+                    <option value="standard">Standard</option>
+                    <option value="fast">Fast Craft</option>
+                </select>
+                <input type="number" id="minPrice" placeholder="Min Price" style="width: 100px; padding: 8px; border-radius: 8px;">
+                <input type="number" id="maxPrice" placeholder="Max Price" style="width: 100px; padding: 8px; border-radius: 8px;">
+                <button onclick="applyFilters()" class="btn-primary" style="padding: 8px 15px;">Apply Filters</button>
+            </div>
+        </div>
+        
+        <div class="form-card">
+            <form onsubmit="bookTicket(event)">
+                <div class="form-group">
+                    <label>From:</label>
+                    <select id="fromPort" required>
+                        <option value="">Select departure</option>
+                        <option value="Butuan Port">Butuan Port</option>
+                        <option value="Magallanes">Magallanes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>To:</label>
+                    <select id="toPort" required>
+                        <option value="">Select destination</option>
+                        <option value="Butuan Port">Butuan Port</option>
+                        <option value="Magallanes">Magallanes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Travel Date:</label>
+                    <input type="date" id="travelDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Passengers:</label>
+                    <input type="number" id="passengers" min="1" max="10" value="1" required>
+                </div>
+
+            <!-- Payment Method Section -->
+            <div class="form-group">
+                <label>Payment Method</label>
+                <div style="display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; background: white;">
+                        <input type="radio" name="payment_method" value="gcash" checked> GCash
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; background: white;">
+                        <input type="radio" name="payment_method" value="maya"> Maya
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; background: white;">
+                        <input type="radio" name="payment_method" value="cash"> Cash (Pay at Counter)
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit">Book Now</button>
+        </form>
+    </div>
+</div>
+
+        <!-- My Bookings Page -->
+        <div id="bookings-page" class="page">
+            <h2>My Bookings</h2>
+            <div class="table-container">
+                <table id="bookingsTable">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Date</th>
+                            <th>Passengers</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                            <th>Cancel</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsBody">
+                        <tr><td colspan="7" style="text-align:center">No bookings yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profile-page" class="page">
+            <h2>My Profile</h2>
+            <div class="form-card">
+                <form onsubmit="updateProfile(event)">
+                    <div class="form-group">
+                        <label>Full Name:</label>
+                        <input type="text" id="profileName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="profileEmail" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone:</label>
+                        <input type="text" id="profilePhone">
+                    </div>
+                    <button type="submit">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+        <!-- Ticket Modal -->
+        <div id="ticketModal" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3>🎫 E-Ticket</h3>
+                    <button onclick="closeTicketModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+                </div>
+                <div id="ticketContent" style="text-align: center;">
+                    <div id="ticketQR"></div>
+                    <div id="ticketDetails"></div>
+                </div>
+                <button onclick="printTicket()" class="btn-primary" style="margin-top:15px;">🖨️ Print Ticket</button>
+            </div>
+        </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/customer.js') }}"></script>
+</body>
+</html>

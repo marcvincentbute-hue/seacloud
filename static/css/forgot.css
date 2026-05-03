@@ -1,0 +1,159 @@
+/* Forgot Password Styles - SeaCloud Theme (Blue/Cyan) */
+
+.form-container {
+    max-width: 450px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-sizing: border-box;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    margin: 0 auto;
+}
+
+.form-container button:active {
+    scale: 0.95;
+}
+
+.form-container .logo-container {
+    text-align: center;
+    font-weight: 600;
+    font-size: 24px;
+    color: #00e5ff;
+    margin-bottom: 10px;
+}
+
+.logo-container .sea-icon {
+    font-size: 50px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.logo-container .subtitle {
+    font-size: 14px;
+    color: #8eafc0;
+    font-weight: normal;
+    margin-top: 5px;
+}
+
+.form-container .form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.form-container .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+.form-container .form-group input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-family: inherit;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    background: rgba(11, 29, 46, 0.8);
+    color: white;
+    font-size: 14px;
+}
+
+.form-container .form-group input::placeholder {
+    color: #64748b;
+    opacity: 0.7;
+}
+
+.form-container .form-group input:focus {
+    outline: none;
+    border-color: #00e5ff;
+    box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.2);
+}
+
+.form-container .form-submit-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: inherit;
+    color: #fff;
+    background: linear-gradient(135deg, #00b8d4, #0077b6);
+    border: none;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    gap: 8px;
+    margin: 12px 0;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.form-container .form-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 119, 182, 0.3);
+}
+
+.form-container .link {
+    color: #00e5ff;
+    text-decoration: none;
+}
+
+.form-container .link:hover {
+    text-decoration: underline;
+}
+
+.form-container .signup-link, .form-container .login-link {
+    align-self: center;
+    font-weight: 500;
+    color: #8eafc0;
+}
+
+.form-container .signup-link .link, .form-container .login-link .link {
+    font-weight: 400;
+    color: #00e5ff;
+}
+
+.message {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+}
+
+.message.success {
+    background: #d4edda;
+    color: #155724;
+    display: block;
+}
+
+.message.error {
+    background: #f8d7da;
+    color: #721c24;
+    display: block;
+}
+
+/* Body background for forgot page */
+body {
+    background: linear-gradient(135deg, #0b1d2e 0%, #133a52 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

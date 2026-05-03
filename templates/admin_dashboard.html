@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeaCloud - Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>⛴️ SeaCloud</h2>
+        <div class="subtitle">Admin Portal</div>
+        <a href="#" onclick="showPage('dashboard')">Dashboard</a>
+        <a href="#" onclick="showPage('users')">Manage Users</a>
+        <a href="#" onclick="showPage('boats')">Manage Boats</a>
+        <a href="#" onclick="showPage('trips')">Manage Trips</a>
+        <a href="#" onclick="showPage('bookings')">All Bookings</a>
+        <a href="#" onclick="logout()" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <!-- Dashboard -->
+        <div id="dashboard-page" class="page active">
+            <div class="header">
+                <h1>Admin Dashboard</h1>
+                <p>Welcome back, <span id="adminName">Admin</span>!</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card"><h3>Total Users</h3><div class="number" id="totalUsers">0</div></div>
+                <div class="stat-card"><h3>Total Boats</h3><div class="number" id="totalBoats">0</div></div>
+                <div class="stat-card"><h3>Total Trips</h3><div class="number" id="totalTrips">0</div></div>
+                <div class="stat-card"><h3>Total Bookings</h3><div class="number" id="totalBookings">0</div></div>
+            </div>
+        </div>
+
+        <!-- Users -->
+        <div id="users-page" class="page">
+            <h2>Manage Users</h2>
+            <button class="btn-success" onclick="showAddUserModal()">+ Add New User</button>
+            <div class="table-container">
+                <table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Actions</th></tr></thead>
+                <tbody id="usersTableBody"></tbody></table>
+            </div>
+        </div>
+
+        <!-- Boats with Add Boat Form -->
+        <div id="boats-page" class="page">
+            <h2>Manage Boats</h2>
+            <p>Add and manage your fleet</p>
+
+            <div class="form-card">
+                <h3>Add New Boat</h3>
+                <form id="addBoatForm" onsubmit="addBoatFromForm(event)">
+                    <div class="form-group"><label>Boat Name</label><input type="text" id="newBoatNameForm" required></div>
+                    <div class="form-group"><label>Capacity (seats)</label><input type="number" id="newBoatCapacityForm" required></div>
+                    <div class="form-group"><label>Status</label>
+                        <select id="newBoatStatusForm">
+                            <option value="available">Active</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-success">Add Boat</button>
+                        <button type="button" onclick="clearBoatForm()" class="btn-danger">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <h3>Existing Boats</h3>
+            <div class="table-container">
+                <table><thead><tr><th>Boat Name</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="boatsTableBody"></tbody></table>
+            </div>
+        </div>
+
+        <!-- Trips -->
+        <div id="trips-page" class="page">
+            <h2>Manage Trips</h2>
+            <div class="table-container">
+                <table><thead><tr><th>ID</th><th>From</th><th>To</th><th>Date</th><th>Time</th><th>Price</th><th>Boat</th><th>Actions</th></tr></thead>
+                <tbody id="tripsTableBody"></tbody></table>
+            </div>
+        </div>
+
+        <!-- Bookings -->
+        <div id="bookings-page" class="page">
+            <h2>All Bookings</h2>
+            <div class="table-container">
+                <table><thead><tr><th>Ref</th><th>Customer</th><th>From</th><th>To</th><th>Date</th><th>Pax</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody id="bookingsTableBody"></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h3>Add New User</h3>
+            <input type="text" id="newUserName" placeholder="Full Name">
+            <input type="email" id="newUserEmail" placeholder="Email">
+            <input type="text" id="newUserPhone" placeholder="Phone">
+            <input type="password" id="newUserPassword" placeholder="Password">
+            <select id="newUserRole"><option value="customer">Customer</option><option value="operator">Operator</option><option value="admin">Admin</option></select>
+            <button class="btn-success" onclick="addUser()">Add User</button>
+            <button class="btn-danger" onclick="closeModal('userModal')">Cancel</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

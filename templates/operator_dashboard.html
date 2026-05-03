@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeaCloud - Operator Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>⛴️ SeaCloud</h2>
+        <h3 style="color:#00e5ff; margin-bottom:20px">Operator Portal</h3>
+        <a href="#" onclick="showPage('dashboard')">Dashboard</a>
+        <a href="#" onclick="showPage('boats')">My Boats</a>
+        <a href="#" onclick="showPage('trips')">My Trips</a>
+        <a href="#" onclick="showPage('bookings')">My Bookings</a>
+        <a href="#" onclick="logout()" class="logout-btn">🚪 Logout</a>
+    </div>
+
+    <div class="main-content">
+        <div id="dashboard-page" class="page active">
+            <div class="header">
+                <h1>Operator Dashboard</h1>
+                <p id="welcomeMsg">Welcome, Operator!</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>My Boats</h3>
+                    <div class="number" id="totalBoats">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>My Trips</h3>
+                    <div class="number" id="totalTrips">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Bookings</h3>
+                    <div class="number" id="totalBookings">0</div>
+                </div>
+                <!-- Monthly Income Card -->
+                <div class="stat-card" style="background: linear-gradient(135deg, #28a745, #20c997); color: white;">
+                    <h3 style="color: white;">Monthly Income</h3>
+                    <div class="number" id="monthlyIncome">₱0</div>
+                    <p id="incomeMonth" style="font-size: 12px; margin-top: 10px;"></p>
+                </div>
+            </div>
+
+            <!-- Income Details Section -->
+            <div class="table-container" style="margin-top: 20px;">
+                <h3>Income Breakdown</h3>
+                <table class="income-table">
+                    <thead>
+                        <tr><th>Month</th><th>Total Trips</th><th>Total Passengers</th><th>Total Income</th></tr>
+                    </thead>
+                    <tbody id="incomeBreakdown"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="boats-page" class="page">
+            <h2>My Boats</h2>
+            <div class="table-container">
+                <table><thead><tr><th>ID</th><th>Boat Name</th><th>Capacity</th><th>Status</th></tr></thead>
+                    <tbody id="boatsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="trips-page" class="page">
+            <h2>My Trips</h2>
+            <div class="table-container">
+                <table><thead><tr><th>ID</th><th>From</th><th>To</th><th>Date</th><th>Time</th><th>Price</th></tr></thead>
+                    <tbody id="tripsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="bookings-page" class="page">
+            <h2>My Bookings</h2>
+            <div class="table-container">
+                <table><thead><tr><th>Reference</th><th>Customer</th><th>From</th><th>To</th><th>Date</th><th>Passengers</th></tr></thead>
+                    <tbody id="bookingsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/operator.js') }}"></script>
+</body>
+</html>

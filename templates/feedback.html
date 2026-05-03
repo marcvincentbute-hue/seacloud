@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeaCloud - Feedback</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/feedback.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">SeaCloud</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/feedback" class="active">Feedback</a>
+            <button class="btn-login" onclick="window.location.href='/login'">Sign In</button>
+            <button class="btn-register" onclick="window.location.href='/register'">Register</button>
+        </div>
+    </nav>
+
+    <div class="feedback-container">
+        <div class="feedback-header">
+            <h1>We Value Your Feedback</h1>
+            <p>Help us improve SeaCloud by sharing your experience</p>
+        </div>
+
+        <div class="feedback-box">
+            <form id="feedbackForm" onsubmit="submitFeedback(event)">
+                <div class="form-group">
+                    <label>How would you rate your experience?</label>
+                    <div class="rating-stars">
+                        <span class="star" data-rating="1">☆</span>
+                        <span class="star" data-rating="2">☆</span>
+                        <span class="star" data-rating="3">☆</span>
+                        <span class="star" data-rating="4">☆</span>
+                        <span class="star" data-rating="5">☆</span>
+                    </div>
+                    <input type="hidden" id="rating" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Your Name (optional)</label>
+                    <input type="text" id="feedback-name" placeholder="e.g., Juan Dela Cruz">
+                </div>
+
+                <div class="form-group">
+                    <label>Your Email (optional)</label>
+                    <input type="email" id="feedback-email" placeholder="you@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Your Feedback</label>
+                    <textarea id="feedback-message" rows="5" placeholder="Tell us about your experience..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Send Feedback</button>
+            </form>
+
+            <div id="message" class="message"></div>
+        </div>
+
+        <div class="testimonials">
+            <h2>What Our Customers Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p>"Very convenient! Booked my ferry ticket in minutes."</p>
+                    <h4>- Maria Santos</h4>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars">★★★★☆</div>
+                    <p>"Easy to use, would love more payment options."</p>
+                    <h4>- John Reyes</h4>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p>"Best ferry booking platform in the Philippines!"</p>
+                    <h4>- Sarah Lopez</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>2025 SeaCloud Ferry Booking System. All rights reserved.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/feedback.js') }}"></script>
+</body>
+</html>

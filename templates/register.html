@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeaCloud - Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">SeaCloud</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/feedback">Feedback</a>
+            <button class="btn-login" onclick="window.location.href='/login'">Sign In</button>
+            <button class="btn-register" onclick="window.location.href='/register'">Register</button>
+        </div>
+    </nav>
+    
+    <div class="register-container">
+        <div class="register-box">
+            <div class="logo"></div>
+            <h2>SeaCloud</h2>
+            <h3>Create Account</h3>
+
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="reg-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="reg-email" required>
+                    <span id="email-error" class="error-text"></span>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number (11 digits)</label>
+                    <input type="tel" id="reg-phone" maxlength="11" placeholder="09123456789">
+                    <span id="phone-error" class="error-text"></span>
+                </div>
+                <div class="form-group">
+                    <label>Register as</label>
+                    <select id="reg-role">
+                        <option value="customer">Passenger / Customer</option>
+                        <option value="operator">Boat Operator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-password" required>
+                    <span id="password-error" class="error-text"></span>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="reg-confirm-password" required>
+                    <span id="confirm-error" class="error-text"></span>
+                </div>
+                <button type="submit">Create Account</button>
+            </form>
+
+            <div id="message" class="message"></div>
+
+            <div class="footer-link">
+                <a href="/login">Already have an account? Login here</a>
+            </div>
+
+            <div class="features">
+                <p>Book ferry tickets online</p>
+                <p>Real-time schedule updates</p>
+                <p>Secure payment options</p>
+                <p>Rate your travel experience</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+</body>
+</html>
