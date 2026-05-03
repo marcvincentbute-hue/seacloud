@@ -335,3 +335,52 @@
         gap: 20px;
     }
 }
+
+/* Weather Section */
+.weather-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+}
+
+.weather-section h3 {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.weather-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weather-card .port-name {
+    font-weight: bold;
+    color: #00e5ff;
+}
+
+.weather-card .temp {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}
+
+.weather-card .condition {
+    color: #cbd5e1;
+}
+
+.weather-card .warning {
+    color: #ffc107;
+    font-size: 12px;
+}
+
+.weather-loading {
+    color: #8eafc0;
+    text-align: center;
+    padding: 20px;
+}
