@@ -83,8 +83,27 @@ class Cancellation:
         db.disconnect()
         return success
 
+
 class TripCancellation:
     """Trip cancellation management"""
+    
+    @staticmethod
+    def calculate_refund(departure_date, total_amount):
+        """Calculate refund amount based on days before departure"""
+        today = datetime.now().date()
+        days_left = (departure_date - today).days
+        
+        if days_left >= 7:
+            refund_percent = 0.90  # 90% refund (10% admin fee)
+        elif days_left >= 3:
+            refund_percent = 0.50  # 50% refund
+        elif days_left >= 1:
+            refund_percent = 0.25  # 25% refund
+        else:
+            refund_percent = 0.00  # No refund
+        
+        refund_amount = total_amount * refund_percent
+        return refund_amount, refund_percent * 100
     
     @classmethod
     def cancel_trip(cls, trip_id, operator_id, reason):
@@ -125,7 +144,7 @@ class TripCancellation:
                     INSERT INTO cancellations (booking_id, booking_ref, customer_id, reason, 
                                                status, refund_amount, processed_at)
                     VALUES (%s, %s, %s, 'Trip cancelled by operator', 'approved', %s, %s)
-                """, (booking[0], booking[1], booking[2], booking[4], datetime.now()))
+                """, (booking[0], booking[1], booking[2], booking[5], datetime.now()))
             
             db.connection.commit()
             db.disconnect()

@@ -1,6 +1,12 @@
+import hashlib
 from models.user import User
 
 class Auth:
+    
+    @staticmethod
+    def hash_password(password):
+        """Hash password using SHA256"""
+        return hashlib.sha256(password.encode()).hexdigest()
     
     @staticmethod
     def register(name, email, password, phone='', role='customer'):
@@ -12,11 +18,14 @@ class Auth:
             if existing_user:
                 return {'success': False, 'message': 'Email already registered!'}
             
-            # Create new user
+            # Hash the password before saving
+            hashed_password = Auth.hash_password(password)
+            
+            # Create new user with hashed password
             new_user = User(
                 name=name,
                 email=email,
-                password=password,
+                password=hashed_password,
                 phone=phone,
                 role=role
             )
@@ -25,7 +34,7 @@ class Auth:
                 return {
                     'success': True, 
                     'message': 'Registration successful!',
-                    'user': new_user.to_dict()  # ← CONVERT TO DICTIONARY!
+                    'user': new_user.to_dict()
                 }
             else:
                 return {'success': False, 'message': 'Failed to save user to database'}
@@ -36,13 +45,17 @@ class Auth:
     
     @staticmethod
     def login(email, password):
-        """Authenticate user login (DIRECT COMPARE)"""
+        """Authenticate user login (WITH HASHING)"""
         user = User.find_by_email(email)
         
-        if user and user.password == password:
-            return {
-                'success': True, 
-                'message': 'Login successful!', 
-                'user': user.to_dict()  # ← CONVERT TO DICTIONARY!
-            }
+        if user:
+            # Hash the entered password and compare
+            hashed_password = Auth.hash_password(password)
+            if user.password == hashed_password:
+                return {
+                    'success': True, 
+                    'message': 'Login successful!', 
+                    'user': user.to_dict()
+                }
+        
         return {'success': False, 'message': 'Invalid email or password!'}

@@ -46,7 +46,3 @@ def operator_dashboard_page():
     response = make_response(render_template('operator_dashboard.html'))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
-
-@page_bp.route('/feedback')
-def feedback_page():
-    return render_template('feedback.html')

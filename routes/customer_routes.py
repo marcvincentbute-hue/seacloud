@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, session
 from models.trip import Trip
 from models.booking import Booking
 from models.user import User
+from models.database import Database
 
 customer_bp = Blueprint('customer', __name__, url_prefix='/api')
 
@@ -110,3 +111,124 @@ def api_get_stats():
         return jsonify({'error': 'Not logged in'})
     stats = Booking.get_stats(session['user_id'])
     return jsonify(stats)
+
+@customer_bp.route('/payments')
+def api_get_payments():
+    try:
+        if 'user_id' not in session:
+            return jsonify({'error': 'Unauthorized'})
+        
+        print(f"User ID: {session['user_id']}")
+        
+        from models.database import Database
+        db = Database()
+        db.connect()
+        
+        query = """
+            SELECT t.from_port, t.to_port, t.departure_date, b.total_amount, b.status
+            FROM bookings b
+            JOIN trips t ON b.trip_id = t.id
+            WHERE b.customer_id = %s
+            ORDER BY t.departure_date DESC
+        """
+        
+        results = db.execute_query(query, (session['user_id'],))
+        db.disconnect()
+        
+        print(f"Results: {results}")
+        
+        if not results:
+            return jsonify([])
+        
+        payments = []
+        for row in results:
+            payments.append({
+                'route': f"{row[0]} → {row[1]}",
+                'method': 'Cash',
+                'date': str(row[2]),
+                'amount': f"₱{float(row[3])}",
+                'status': 'paid' if row[4] == 'confirmed' else 'pending'
+            })
+        
+        return jsonify(payments)
+        
+    except Exception as e:
+        print(f"Payment error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@customer_bp.route('/my-reservations')
+def api_my_reservations():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'})
+    
+    print(f"Fetching reservations for user: {session['user_id']}")  # Debug
+    
+    from models.database import Database
+    db = Database()
+    db.connect()
+    
+    results = db.execute_query("""
+        SELECT b.booking_ref, t.from_port, t.to_port, t.departure_date, t.departure_time, 
+               b.passengers, b.total_amount, b.status
+        FROM bookings b
+        JOIN trips t ON b.trip_id = t.id
+        WHERE b.customer_id = %s AND t.departure_date >= CURRENT_DATE
+        ORDER BY t.departure_date ASC
+    """, (session['user_id'],))
+    
+    db.disconnect()
+    
+    print(f"Found {len(results) if results else 0} reservations")  # Debug
+    
+    reservations = []
+    if results:
+        for row in results:
+            reservations.append({
+                'ref': row[0],
+                'from': row[1],
+                'to': row[2],
+                'date': str(row[3]),
+                'time': str(row[4]),
+                'passengers': row[5],
+                'amount': float(row[6]),
+                'status': row[7]
+            })
+    
+    return jsonify(reservations)
+
+@customer_bp.route('/cancel-request', methods=['POST'])
+def cancel_booking_request():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please login first'})
+    
+    data = request.json
+    booking_ref = data.get('booking_ref')
+    reason = data.get('reason')
+    
+    db = Database()
+    db.connect()
+    
+    # Check if booking exists and belongs to user
+    booking = db.execute_query("""
+        SELECT id, status FROM bookings 
+        WHERE booking_ref = %s AND customer_id = %s
+    """, (booking_ref, session['user_id']))
+    
+    if not booking:
+        db.disconnect()
+        return jsonify({'success': False, 'message': 'Booking not found'})
+    
+    # Update booking status to cancelled
+    db.execute_insert("UPDATE bookings SET status = 'cancelled' WHERE booking_ref = %s", (booking_ref,))
+    
+    # Create notification for the user
+    db.execute_insert("""
+        INSERT INTO notifications (user_id, title, message, icon, color, bg)
+        VALUES (%s, 'Booking Cancelled', %s, 'x-circle', '#ef4444', '#fef2f2')
+    """, (session['user_id'], f'Your booking {booking_ref} has been cancelled.'))
+    
+    db.disconnect()
+    
+    return jsonify({'success': True, 'message': 'Booking cancelled successfully!'})

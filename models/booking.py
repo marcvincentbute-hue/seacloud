@@ -90,7 +90,6 @@ class Booking:
         self.db.disconnect()
         return success
     
-    
     def cancel(self):
         """Cancel booking (UPDATE - status to cancelled)"""
         self.db.connect()
@@ -107,16 +106,39 @@ class Booking:
         """Get all bookings by customer (READ)"""
         db = Database()
         db.connect()
-        query = """
-            SELECT b.booking_ref, b.passengers, b.total_amount, b.status, b.booking_date,
-                   t.from_port, t.to_port, t.departure_date
-            FROM bookings b
-            JOIN trips t ON b.trip_id = t.id
-            WHERE b.customer_id = %s
-            ORDER BY b.booking_date DESC
-        """
+        
+        # Check if booking_date column exists first
+        db.cursor.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'bookings' AND column_name = 'booking_date'
+        """)
+        has_booking_date = db.cursor.fetchone() is not None
+        
+        if has_booking_date:
+            query = """
+                SELECT b.booking_ref, b.passengers, b.total_amount, b.status, b.booking_date,
+                       t.from_port, t.to_port, t.departure_date
+                FROM bookings b
+                JOIN trips t ON b.trip_id = t.id
+                WHERE b.customer_id = %s
+                ORDER BY b.booking_date DESC
+            """
+        else:
+            query = """
+                SELECT b.booking_ref, b.passengers, b.total_amount, b.status, b.created_at,
+                       t.from_port, t.to_port, t.departure_date
+                FROM bookings b
+                JOIN trips t ON b.trip_id = t.id
+                WHERE b.customer_id = %s
+                ORDER BY b.created_at DESC
+            """
+        
         results = db.execute_query(query, (customer_id,))
         db.disconnect()
+        
+        if not results:
+            return []
         
         bookings = []
         for row in results:

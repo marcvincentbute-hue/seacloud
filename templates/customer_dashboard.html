@@ -12,12 +12,41 @@
 </head>
 <body>
     <div class="sidebar">
-        <h2>⛴️ SeaCloud</h2>
-        <a href="#" onclick="showPage('dashboard')">Dashboard</a>
-        <a href="#" onclick="showPage('book')">Book Ticket</a>
-        <a href="#" onclick="showPage('bookings')">My Bookings</a>
-        <a href="#" onclick="showPage('profile')">Profile</a>
-        <a href="#" onclick="logout()" class="logout-btn">Logout</a>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #00b8d4, #0077b6); display: flex; align-items: center; justify-content: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+                    <path d="M2 12c1.5-2 3.5-3 5.5-1s4 2 5.5 0 3.5-1 5.5 1" />
+                    <path d="M2 17c1.5-2 3.5-3 5.5-1s4 2 5.5 0 3.5-1 5.5 1" />
+                    <path d="M9 5l3-3 3 3" />
+                    <path d="M12 2v10" />
+                </svg>
+            </div>
+            <span style="font-size: 20px; font-weight: bold; color: white;">SeaCloud</span>
+        </div>
+        <a href="#" onclick="showPage('dashboard')">
+            <i data-lucide="layout-dashboard" style="width: 18px; height: 18px; margin-right: 12px;"></i> Dashboard
+        </a>
+        <a href="#" onclick="showPage('book')">
+            <i data-lucide="ticket" style="width: 18px; height: 18px; margin-right: 12px;"></i> Book Ticket
+        </a>
+        <a href="#" onclick="showPage('payment')">
+            <i data-lucide="credit-card" style="width: 18px; height: 18px; margin-right: 12px;"></i> Payment
+        </a>
+        <a href="#" onclick="showPage('myreservations')">
+            <i data-lucide="calendar-check" style="width: 18px; height: 18px; margin-right: 12px;"></i> My Reservations
+        </a>
+        <a href="#" onclick="showPage('bookings')">
+            <i data-lucide="file-text" style="width: 18px; height: 18px; margin-right: 12px;"></i> My Bookings
+        </a>
+        <a href="#" onclick="showPage('notifications')">
+            <i data-lucide="bell" style="width: 18px; height: 18px; margin-right: 12px;"></i> Notifications
+        </a>
+        <a href="#" onclick="showPage('profile')">
+            <i data-lucide="user" style="width: 18px; height: 18px; margin-right: 12px;"></i> Profile
+        </a>
+        <a href="#" onclick="logout()" class="logout-btn" style="margin-top: 50px; background: #dc3545; text-align: center; border-radius: 12px; padding: 12px;">
+            <i data-lucide="log-out" style="width: 18px; height: 18px; margin-right: 12px;"></i> Logout
+        </a>
     </div>
 
     <div class="main-content">
@@ -41,100 +70,120 @@
                     <div class="number" id="completedTrips">0</div>
                 </div>
             </div>
+
+            <!-- Ready to Travel Card -->
+            <div class="ready-card" style="background: linear-gradient(135deg, #059669, #34d399); border-radius: 16px; padding: 24px; margin-top: 20px; text-align: center; color: white;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <i data-lucide="plus" style="width: 28px; height: 28px; color: white;"></i>
+                </div>
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: bold; margin-bottom: 8px;">Ready to Travel?</h3>
+                <p style="font-size: 14px; margin-bottom: 16px; opacity: 0.9;">Book your next trip in seconds</p>
+                <button onclick="showPage('book')" style="background: white; color: #059669; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 600; cursor: pointer;">Book Now</button>
+            </div>
         </div>
 
         <!-- Book Ticket Page -->
-    <div id="book-page" class="page">
-        <h2>Book a Ferry Ticket</h2>
-        
-        <!-- Filter Section - NAA DIRI (SA SULOD) -->
-        <div class="filter-section" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 12px;">
-            <h4>🔍 Filter Trips</h4>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-                <select id="filterTime" style="padding: 8px; border-radius: 8px;">
-                    <option value="">All Times</option>
-                    <option value="morning">Morning (6AM - 12PM)</option>
-                    <option value="afternoon">Afternoon (12PM - 5PM)</option>
-                    <option value="evening">Evening (5PM - 10PM)</option>
-                </select>
-                <select id="filterBoatType" style="padding: 8px; border-radius: 8px;">
-                    <option value="">All Boat Types</option>
-                    <option value="standard">Standard</option>
-                    <option value="fast">Fast Craft</option>
-                </select>
-                <input type="number" id="minPrice" placeholder="Min Price" style="width: 100px; padding: 8px; border-radius: 8px;">
-                <input type="number" id="maxPrice" placeholder="Max Price" style="width: 100px; padding: 8px; border-radius: 8px;">
-                <button onclick="applyFilters()" class="btn-primary" style="padding: 8px 15px;">Apply Filters</button>
+        <div id="book-page" class="page">
+            <h2>Book a Ticket</h2>
+            
+            <div class="form-card">
+                <form onsubmit="bookTicket(event)">
+                    <div class="form-group">
+                        <label>From:</label>
+                        <select id="fromPort" required>
+                            <option value="">Select departure</option>
+                            <option value="Butuan Port">Butuan Port</option>
+                            <option value="Magallanes">Magallanes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>To:</label>
+                        <select id="toPort" required>
+                            <option value="">Select destination</option>
+                            <option value="Butuan Port">Butuan Port</option>
+                            <option value="Magallanes">Magallanes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Travel Date:</label>
+                        <input type="date" id="travelDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Passengers:</label>
+                        <input type="number" id="passengers" min="1" max="10" value="1" required>
+                    </div>
+
+                    <button type="submit">Book Now</button>
+                </form>
+            </div>
+        </div>
+
+                <!-- Payment Page -->
+        <div id="payment-page" class="page">
+            <h2>Payment</h2>
+            
+            <!-- Payment Method Selection -->
+            <div class="form-card" style="margin-bottom: 20px;">
+                <h3>Payment Method</h3>
+                <div class="payment-options" style="display: flex; gap: 15px; margin-top: 15px;">
+                    <label class="payment-option" style="display: flex; align-items: center; gap: 10px; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; flex: 1;">
+                        <input type="radio" name="pay-method" value="gcash"> 
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #0057ff; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: white; font-weight: bold;">G</span>
+                        </div>
+                        <div>
+                            <p style="font-weight: 600;">GCash</p>
+                            <p style="font-size: 12px; color: #64748b;">Pay via e-wallet</p>
+                        </div>
+                    </label>
+                    <label class="payment-option" style="display: flex; align-items: center; gap: 10px; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; flex: 1;">
+                        <input type="radio" name="pay-method" value="cash"> 
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #f59e0b; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="banknote" style="width: 20px; height: 20px; color: white;"></i>
+                        </div>
+                        <div>
+                            <p style="font-weight: 600;">Cash</p>
+                            <p style="font-size: 12px; color: #64748b;">Pay at counter</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+                <!-- Payment History -->
+            <div class="table-container">
+                <h3>Payment History</h3>
+                <div id="paymentHistoryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 20px;">
+                    <!-- Payment cards will be loaded here -->
+                </div>
             </div>
         </div>
         
-        <div class="form-card">
-            <form onsubmit="bookTicket(event)">
-                <div class="form-group">
-                    <label>From:</label>
-                    <select id="fromPort" required>
-                        <option value="">Select departure</option>
-                        <option value="Butuan Port">Butuan Port</option>
-                        <option value="Magallanes">Magallanes</option>
-                    </select>
+                <!-- My Reservations Page -->
+                <div id="myreservations-page" class="page">
+                    <h2>My Reservations</h2>
+                    <div id="reservationsGrid" style="display: flex; flex-direction: column; gap: 15px;">
+                        <!-- Reservations will be loaded here as cards -->
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>To:</label>
-                    <select id="toPort" required>
-                        <option value="">Select destination</option>
-                        <option value="Butuan Port">Butuan Port</option>
-                        <option value="Magallanes">Magallanes</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Travel Date:</label>
-                    <input type="date" id="travelDate" required>
-                </div>
-                <div class="form-group">
-                    <label>Passengers:</label>
-                    <input type="number" id="passengers" min="1" max="10" value="1" required>
-                </div>
-
-            <!-- Payment Method Section -->
-            <div class="form-group">
-                <label>Payment Method</label>
-                <div style="display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
-                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; background: white;">
-                        <input type="radio" name="payment_method" value="gcash" checked> GCash
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; background: white;">
-                        <input type="radio" name="payment_method" value="maya"> Maya
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; background: white;">
-                        <input type="radio" name="payment_method" value="cash"> Cash (Pay at Counter)
-                    </label>
-                </div>
-            </div>
-
-            <button type="submit">Book Now</button>
-        </form>
-    </div>
-</div>
 
         <!-- My Bookings Page -->
         <div id="bookings-page" class="page">
             <h2>My Bookings</h2>
             <div class="table-container">
-                <table id="bookingsTable">
+                <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
-                            <th>Booking ID</th>
-                            <th>From</th>
-                            <th>To</th>
-                            <th>Date</th>
-                            <th>Passengers</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                            <th>Cancel</th>
+                            <th style="text-align: left; padding: 12px;">Booking ID</th>
+                            <th style="text-align: left; padding: 12px;">From</th>
+                            <th style="text-align: left; padding: 12px;">To</th>
+                            <th style="text-align: left; padding: 12px;">Date</th>
+                            <th style="text-align: left; padding: 12px;">Passengers</th>
+                            <th style="text-align: left; padding: 12px;">Status</th>
+                            <th style="text-align: left; padding: 12px;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="bookingsBody">
-                        <tr><td colspan="7" style="text-align:center">No bookings yet</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding: 40px;">No bookings yet</td><｜PHYTHON｜>
                     </tbody>
                 </table>
             </div>
@@ -161,23 +210,79 @@
                 </form>
             </div>
         </div>
-    </div>
 
-        <!-- Ticket Modal -->
-        <div id="ticketModal" class="modal">
-            <div class="modal-content" style="max-width: 400px;">
-                <div class="modal-header">
-                    <h3>🎫 E-Ticket</h3>
-                    <button onclick="closeTicketModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+        <!-- Notifications Page -->
+        <div id="notifications-page" class="page">
+            <h2>Notifications</h2>
+            <div class="table-container">
+                <div id="notifications-list">
+                    <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-start;">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: #ecfdf5; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="check-circle" style="width: 18px; height: 18px; color: #059669;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <p style="font-weight: 600; color: #1e293b;">Booking Confirmed</p>
+                            <p style="font-size: 14px; color: #64748b;">Manila → Baguio on Jul 15 has been confirmed.</p>
+                            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">2 hours ago</p>
+                        </div>
+                        <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span>
+                    </div>
+                    <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-start;">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: #fef3c7; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="alert-triangle" style="width: 18px; height: 18px; color: #d97706;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <p style="font-weight: 600; color: #1e293b;">Trip Update</p>
+                            <p style="font-size: 14px; color: #64748b;">Your Cebu → Davao trip schedule changed to 10:30 AM.</p>
+                            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">1 day ago</p>
+                        </div>
+                        <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span>
+                    </div>
+                    <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-start;">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: #fef2f2; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="x-circle" style="width: 18px; height: 18px; color: #ef4444;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <p style="font-weight: 600; color: #1e293b;">Booking Cancelled</p>
+                            <p style="font-size: 14px; color: #64748b;">Manila → Iloilo on Jun 30 was cancelled.</p>
+                            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">3 days ago</p>
+                        </div>
+                    </div>
                 </div>
-                <div id="ticketContent" style="text-align: center;">
-                    <div id="ticketQR"></div>
-                    <div id="ticketDetails"></div>
-                </div>
-                <button onclick="printTicket()" class="btn-primary" style="margin-top:15px;">🖨️ Print Ticket</button>
             </div>
         </div>
+    </div>
+
+    <!-- Ticket Modal -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>🎫 E-Ticket</h3>
+                <button onclick="closeTicketModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div id="ticketContent" style="text-align: center;">
+                <div id="ticketQR"></div>
+                <div id="ticketDetails"></div>
+            </div>
+            <button onclick="printTicket()" class="btn-primary" style="margin-top:15px;">🖨️ Print Ticket</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/customer.js') }}"></script>
+    <script>
+        lucide.createIcons();
+        
+        // Update showPage function to include notifications
+        const originalShowPage = window.showPage;
+        window.showPage = function(page) {
+            if (originalShowPage) originalShowPage(page);
+            if (page === 'notifications') {
+                // Notifications are already in HTML, just ensure icons are rendered
+                lucide.createIcons();
+            }
+        };
+    </script>
 </body>
 </html>
