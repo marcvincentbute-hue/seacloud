@@ -12,6 +12,7 @@ class Config:
         DB_USER = url.username
         DB_PASSWORD = url.password
         DB_PORT = url.port or 5432
+        print(f"✅ Using Render DB: {DB_HOST}")
     else:
         # Local development
         DB_HOST = "localhost"
@@ -19,5 +20,6 @@ class Config:
         DB_USER = "postgres"
         DB_PASSWORD = "admin123"
         DB_PORT = "5433"
+        print("⚠️ Using local database")
     
     SECRET_KEY = "seacloud123"
