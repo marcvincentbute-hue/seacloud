@@ -111,8 +111,9 @@ def api_forgot_password():
         session['reset_token'] = token
         
         # Generate reset link
-        reset_link = f"https://your-ngrok-url.ngrok-free.app/reset-password?token={token}"
-        
+        reset_link = f"https://seacloud-09mp.onrender.com/reset-password?token={token}" 
+        #reset_link = f"http://127.0.0.1:5000/reset-password?token={token}" for local
+
         # Send email
         if send_reset_email(email, reset_link):
             cur.close()
