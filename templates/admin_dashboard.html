@@ -5,25 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SeaCloud - Admin Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 </head>
 <body>
     <div class="sidebar">
-        <h2>⛴️ SeaCloud</h2>
-        <div class="subtitle">Admin Portal</div>
-        <a href="#" onclick="showPage('dashboard')">Dashboard</a>
-        <a href="#" onclick="showPage('users')">Manage Users</a>
-        <a href="#" onclick="showPage('boats')">Manage Boats</a>
-        <a href="#" onclick="showPage('trips')">Manage Trips</a>
-        <a href="#" onclick="showPage('bookings')">All Bookings</a>
-        <a href="#" onclick="logout()" class="logout-btn">Logout</a>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #00b8d4, #0077b6); display: flex; align-items: center; justify-content: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+                    <path d="M2 12c1.5-2 3.5-3 5.5-1s4 2 5.5 0 3.5-1 5.5 1" />
+                    <path d="M2 17c1.5-2 3.5-3 5.5-1s4 2 5.5 0 3.5-1 5.5 1" />
+                    <path d="M9 5l3-3 3 3" />
+                    <path d="M12 2v10" />
+                </svg>
+            </div>
+            <span style="font-size: 20px; font-weight: bold; color: white;">SeaCloud</span>
+        </div>
+        <a href="#" onclick="showPage('dashboard')">
+            <i data-lucide="layout-dashboard" style="width: 18px; height: 18px; margin-right: 12px;"></i> Dashboard
+        </a>
+        <a href="#" onclick="showPage('users')">
+            <i data-lucide="users" style="width: 18px; height: 18px; margin-right: 12px;"></i> Manage Users
+        </a>
+        <a href="#" onclick="showPage('boats')">
+            <i data-lucide="ship" style="width: 18px; height: 18px; margin-right: 12px;"></i> Manage Boats
+        </a>
+        <a href="#" onclick="showPage('trips')">
+            <i data-lucide="calendar" style="width: 18px; height: 18px; margin-right: 12px;"></i> Manage Trips
+        </a>
+        <a href="#" onclick="showPage('bookings')">
+            <i data-lucide="ticket" style="width: 18px; height: 18px; margin-right: 12px;"></i> All Bookings
+        </a>
+        <a href="#" onclick="logout()" class="logout-btn" style="margin-top: 50px; background: #dc3545; text-align: center; border-radius: 12px; padding: 12px;">
+            <i data-lucide="log-out" style="width: 18px; height: 18px; margin-right: 12px;"></i> Logout
+        </a>
     </div>
 
     <div class="main-content">
-        <!-- Dashboard -->
+        <!-- Dashboard Page -->
         <div id="dashboard-page" class="page active">
             <div class="header">
                 <h1>Admin Dashboard</h1>
@@ -37,62 +58,68 @@
             </div>
         </div>
 
-        <!-- Users -->
+        <!-- Users Page -->
         <div id="users-page" class="page">
             <h2>Manage Users</h2>
             <button class="btn-success" onclick="showAddUserModal()">+ Add New User</button>
             <div class="table-container">
-                <table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Actions</th></tr></thead>
-                <tbody id="usersTableBody"></tbody></table>
+                <table style="width:100%">
+                    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Actions</th></tr></thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Boats with Add Boat Form -->
+        <!-- Boats Page -->
         <div id="boats-page" class="page">
             <h2>Manage Boats</h2>
-            <p>Add and manage your fleet</p>
-
-            <div class="form-card">
+            <div class="form-card" style="margin-bottom: 20px; max-width: 100%;">
                 <h3>Add New Boat</h3>
                 <form id="addBoatForm" onsubmit="addBoatFromForm(event)">
-                    <div class="form-group"><label>Boat Name</label><input type="text" id="newBoatNameForm" required></div>
-                    <div class="form-group"><label>Capacity (seats)</label><input type="number" id="newBoatCapacityForm" required></div>
-                    <div class="form-group"><label>Status</label>
-                        <select id="newBoatStatusForm">
-                            <option value="available">Active</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                    <div class="form-buttons">
-                        <button type="submit" class="btn-success">Add Boat</button>
-                        <button type="button" onclick="clearBoatForm()" class="btn-danger">Cancel</button>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div class="form-group"><label>Boat Name</label><input type="text" id="newBoatNameForm" required></div>
+                        <div class="form-group"><label>Capacity (seats)</label><input type="number" id="newBoatCapacityForm" required></div>
+                        <div class="form-group"><label>Status</label>
+                            <select id="newBoatStatusForm">
+                                <option value="available">Active</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: end;">
+                            <button type="submit" class="btn-success">Add Boat</button>
+                            <button type="button" onclick="clearBoatForm()" class="btn-danger" style="margin-left: 10px;">Cancel</button>
+                        </div>
                     </div>
                 </form>
             </div>
-
-            <h3>Existing Boats</h3>
             <div class="table-container">
-                <table><thead><tr><th>Boat Name</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="boatsTableBody"></tbody></table>
+                <table style="width:100%">
+                    <thead><tr><th>Boat Name</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="boatsTableBody"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Trips -->
+        <!-- Trips Page -->
         <div id="trips-page" class="page">
             <h2>Manage Trips</h2>
             <div class="table-container">
-                <table><thead><tr><th>ID</th><th>From</th><th>To</th><th>Date</th><th>Time</th><th>Price</th><th>Boat</th><th>Actions</th></tr></thead>
-                <tbody id="tripsTableBody"></tbody></table>
+                <table style="width:100%">
+                    <thead><tr><th>ID</th><th>From</th><th>To</th><th>Date</th><th>Time</th><th>Price</th><th>Boat</th><th>Actions</th></tr></thead>
+                    <tbody id="tripsTableBody"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Bookings -->
+        <!-- Bookings Page -->
         <div id="bookings-page" class="page">
             <h2>All Bookings</h2>
             <div class="table-container">
-                <table><thead><tr><th>Ref</th><th>Customer</th><th>From</th><th>To</th><th>Date</th><th>Pax</th><th>Amount</th><th>Status</th></tr></thead>
-                <tbody id="bookingsTableBody"></tbody></table>
+                <table style="width:100%">
+                    <thead><tr><th>Ref</th><th>Customer</th><th>From</th><th>To</th><th>Date</th><th>Pax</th><th>Amount</th><th>Status</th></tr></thead>
+                    <tbody id="bookingsTableBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -105,13 +132,19 @@
             <input type="email" id="newUserEmail" placeholder="Email">
             <input type="text" id="newUserPhone" placeholder="Phone">
             <input type="password" id="newUserPassword" placeholder="Password">
-            <select id="newUserRole"><option value="customer">Customer</option><option value="operator">Operator</option><option value="admin">Admin</option></select>
+            <select id="newUserRole">
+                <option value="customer">Customer</option>
+                <option value="operator">Operator</option>
+                <option value="admin">Admin</option>
+            </select>
             <button class="btn-success" onclick="addUser()">Add User</button>
             <button class="btn-danger" onclick="closeModal('userModal')">Cancel</button>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
