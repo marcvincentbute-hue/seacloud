@@ -350,3 +350,26 @@ def api_complete_trip(trip_id):
         return jsonify({'success': True, 'message': 'Trip marked as completed'})
     
     return jsonify({'success': False, 'message': 'Failed to complete trip'})
+
+@operator_bp.route('/profile', methods=['PUT'])
+def api_operator_update_profile():
+    """Update operator profile"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    data = request.json
+    name = data.get('name')
+    phone = data.get('phone')
+    
+    db = Database()
+    db.connect()
+    
+    success = db.execute_insert("""
+        UPDATE users SET name = %s, phone = %s WHERE id = %s
+    """, (name, phone, session['user_id']))
+    
+    db.disconnect()
+    
+    if success:
+        return jsonify({'success': True, 'message': 'Profile updated successfully'})
+    return jsonify({'success': False, 'message': 'Failed to update profile'})

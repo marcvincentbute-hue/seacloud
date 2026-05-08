@@ -38,6 +38,9 @@
         <a href="#" onclick="logout()" class="logout-btn" style="margin-top: 50px; background: #dc3545; text-align: center; border-radius: 12px; padding: 12px;">
             <i data-lucide="log-out" style="width: 18px; height: 18px; margin-right: 12px;"></i> Logout
         </a>
+        <a href="#" onclick="showPage('profile')">
+            <i data-lucide="user" style="width: 18px; height: 18px; margin-right: 12px;"></i> Profile
+        </a>
     </div>
 
     <div class="main-content">
@@ -243,6 +246,32 @@
                     </thead>
                     <tbody id="bookingsTable"></tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profile-page" class="page">
+            <h2>My Profile</h2>
+            <div class="form-card">
+                <form id="profileForm" onsubmit="updateOperatorProfile(event)">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="profileName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="profileEmail" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="profilePhone">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" id="profileRole" readonly>
+                    </div>
+                    <button type="submit" class="btn-success">Update Profile</button>
+                </form>
             </div>
         </div>
 

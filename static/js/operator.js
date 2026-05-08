@@ -413,5 +413,43 @@ async function updateOperatorBoat(event) {
     }
 }
 
+// ========== PROFILE FUNCTIONS ==========
+function loadProfile() {
+    document.getElementById('profileName').value = currentUser.name || '';
+    document.getElementById('profileEmail').value = currentUser.email || '';
+    document.getElementById('profilePhone').value = currentUser.phone || '';
+    document.getElementById('profileRole').value = currentUser.role || 'operator';
+}
+
+async function updateOperatorProfile(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('profileName').value;
+    const phone = document.getElementById('profilePhone').value;
+    
+    try {
+        const response = await fetch('/api/operator/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phone })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Profile updated successfully!');
+            currentUser.name = name;
+            currentUser.phone = phone;
+            sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            document.getElementById('welcomeMsg').innerHTML = `Welcome back, ${currentUser.name}! 👋`;
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('Failed to update profile');
+    }
+}
+
 // Initialize
 checkAuth();
