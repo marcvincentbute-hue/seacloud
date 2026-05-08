@@ -19,7 +19,7 @@ class Config:
         DB_NAME = "seacloud_db"
         DB_USER = "postgres"
         DB_PASSWORD = "admin123"
-        DB_PORT = "5433"
+        DB_PORT = "5433"   # ← SIGUROHA 5433, DILI 3306!
         print("⚠️ Using local database")
     
     SECRET_KEY = "seacloud123"

@@ -45,47 +45,184 @@
         <div id="dashboard-page" class="page active">
             <div class="header">
                 <h1>Operator Dashboard</h1>
-                <p id="welcomeMsg">Welcome, Operator!</p>
+                <p id="welcomeMsg">Welcome back, Operator!</p>
             </div>
             <div class="stats-grid">
-                <div class="stat-card"><h3>My Boats</h3><div class="number" id="totalBoats">0</div></div>
-                <div class="stat-card"><h3>My Trips</h3><div class="number" id="totalTrips">0</div></div>
-                <div class="stat-card"><h3>Total Bookings</h3><div class="number" id="totalBookings">0</div></div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #28a745, #20c997); color: white;">
-                    <h3 style="color: white;">Monthly Income</h3>
-                    <div class="number" id="monthlyIncome">₱0</div>
-                    <p id="incomeMonth" style="font-size: 12px; margin-top: 10px;"></p>
+                <div class="stat-card">
+                    <h3>My Boats</h3>
+                    <div class="number" id="totalBoats">0</div>
                 </div>
-            </div>
-
-            <div class="table-container" style="margin-top: 20px;">
-                <h3>Income Breakdown</h3>
-                <table style="width:100%">
-                    <thead><tr><th>Month</th><th>Total Trips</th><th>Total Passengers</th><th>Total Income</th></tr></thead>
-                    <tbody id="incomeBreakdown"></tbody>
-                </table>
+                <div class="stat-card">
+                    <h3>My Trips</h3>
+                    <div class="number" id="totalTrips">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Bookings</h3>
+                    <div class="number" id="totalBookings">0</div>
+                </div>
             </div>
         </div>
 
         <!-- My Boats Page -->
         <div id="boats-page" class="page">
-            <h2>My Boats</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0; font-size: 24px;">My Boats</h2>
+                <button onclick="openAddBoatModal()" style="background: #0077b6; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add Boat
+                </button>
+            </div>
+            
+            <!-- Boats Table -->
             <div class="table-container">
-                <table style="width:100%">
-                    <thead><tr><th>ID</th><th>Boat Name</th><th>Capacity</th><th>Status</th></tr></thead>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding: 12px;">ID</th>
+                            <th style="text-align: left; padding: 12px;">Boat Name</th>
+                            <th style="text-align: left; padding: 12px;">Capacity</th>
+                            <th style="text-align: left; padding: 12px;">Status</th>
+                            <th style="text-align: left; padding: 12px;">Action</th>
+                        </tr>
+                    </thead>
                     <tbody id="boatsTable"></tbody>
                 </table>
             </div>
         </div>
 
+        <!-- Add Boat Modal (Popup) -->
+        <div id="addBoatModal" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Add New Boat</h3>
+                    <button onclick="closeAddBoatModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="addBoatForm" onsubmit="addOperatorBoat(event)">
+                    <div class="form-group">
+                        <label>Boat Name</label>
+                        <input type="text" id="newBoatName" placeholder="e.g., Sea Breeze 2" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Capacity (seats)</label>
+                        <input type="number" id="newBoatCapacity" placeholder="10" required>
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%;">Add Boat</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Boat Modal (Popup) -->
+        <div id="editBoatModal" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Edit Boat</h3>
+                    <button onclick="closeEditBoatModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="editBoatForm" onsubmit="updateOperatorBoat(event)">
+                    <input type="hidden" id="editBoatId">
+                    <div class="form-group">
+                        <label>Boat Name</label>
+                        <input type="text" id="editBoatName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Capacity (seats)</label>
+                        <input type="number" id="editBoatCapacity" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editBoatStatus">
+                            <option value="available">Available</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%;">Update Boat</button>
+                </form>
+            </div>
+        </div>
+
+
         <!-- My Trips Page -->
         <div id="trips-page" class="page">
-            <h2>My Trips</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0; font-size: 24px;">My Trips</h2>
+                <button onclick="openAddTripModal()" style="background: #0077b6; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add Trip
+                </button>
+            </div>
+            
+            <!-- Trips Table -->
             <div class="table-container">
-                <table style="width:100%">
-                    <thead><tr><th>ID</th><th>From</th><th>To</th><th>Date</th><th>Time</th><th>Price</th></tr></thead>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding: 12px;">ID</th>
+                            <th style="text-align: left; padding: 12px;">Boat</th>
+                            <th style="text-align: left; padding: 12px;">From</th>
+                            <th style="text-align: left; padding: 12px;">To</th>
+                            <th style="text-align: left; padding: 12px;">Date</th>
+                            <th style="text-align: left; padding: 12px;">Time</th>
+                            <th style="text-align: left; padding: 12px;">Price</th>
+                            <th style="text-align: left; padding: 12px;">Seats</th>
+                        </tr>
+                    </thead>
                     <tbody id="tripsTable"></tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Add Trip Modal (Popup) -->
+        <div id="addTripModal" class="modal">
+            <div class="modal-content" style="max-width: 450px; max-height: 80vh; overflow-y: auto;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 18px;">Add New Trip</h3>
+                    <button onclick="closeAddTripModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="addTripForm" onsubmit="addOperatorTrip(event)">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 13px;">Select Boat</label>
+                        <select id="tripBoatId" required style="padding: 8px; font-size: 13px;">
+                            <option value="">Select a boat</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 13px;">From (Origin)</label>
+                        <select id="tripFrom" required style="padding: 8px; font-size: 13px;">
+                            <option value="">Select departure port</option>
+                            <option value="Butuan Port">Butuan Port</option>
+                            <option value="Magallanes">Magallanes</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 13px;">To (Destination)</label>
+                        <select id="tripTo" required style="padding: 8px; font-size: 13px;">
+                            <option value="">Select destination port</option>
+                            <option value="Butuan Port">Butuan Port</option>
+                            <option value="Magallanes">Magallanes</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 13px;">Departure Date</label>
+                        <input type="date" id="tripDate" required style="padding: 8px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 13px;">Departure Time</label>
+                        <input type="time" id="tripTime" required style="padding: 8px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 13px;">Price (₱)</label>
+                        <input type="number" id="tripPrice" placeholder="250" required style="padding: 8px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 13px;">Available Seats</label>
+                        <input type="number" id="tripSeats" placeholder="10" required style="padding: 8px; font-size: 13px;">
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%; padding: 10px;">Add Trip</button>
+                </form>
             </div>
         </div>
 
@@ -93,17 +230,27 @@
         <div id="bookings-page" class="page">
             <h2>My Bookings</h2>
             <div class="table-container">
-                <table style="width:100%">
-                    <thead><tr><th>Reference</th><th>Customer</th><th>From</th><th>To</th><th>Date</th><th>Passengers</th></tr></thead>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding: 12px;">Reference</th>
+                            <th style="text-align: left; padding: 12px;">Customer</th>
+                            <th style="text-align: left; padding: 12px;">From</th>
+                            <th style="text-align: left; padding: 12px;">To</th>
+                            <th style="text-align: left; padding: 12px;">Date</th>
+                            <th style="text-align: left; padding: 12px;">Passengers</th>
+                        </tr>
+                    </thead>
                     <tbody id="bookingsTable"></tbody>
                 </table>
             </div>
         </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/operator.js') }}"></script>
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>

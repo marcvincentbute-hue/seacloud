@@ -142,15 +142,25 @@ def api_reset_password():
     if not email:
         return jsonify({'success': False, 'message': 'Session expired'})
     
+    # ✅ FIXED: Hash the password before saving
+    hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+    
     conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("UPDATE users SET password = %s WHERE email = %s", (new_password, email))
-    conn.commit()
+    if not conn:
+        return jsonify({'success': False, 'message': 'Database connection failed'})
     
-    session.pop('reset_email', None)
-    session.pop('reset_token', None)
-    
-    cur.close()
-    conn.close()
-    
-    return jsonify({'success': True, 'message': 'Password reset successfully! You can now login.'})
+    try:
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET password = %s WHERE email = %s", (hashed_password, email))
+        conn.commit()
+        
+        session.pop('reset_email', None)
+        session.pop('reset_token', None)
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Password reset successfully! You can now login.'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': str(e)})

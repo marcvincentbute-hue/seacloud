@@ -4,6 +4,7 @@ from models.auth import Auth
 from config import Config
 import psycopg2
 from psycopg2 import OperationalError
+import hashlib
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api')
 
@@ -44,7 +45,13 @@ def api_login():
         email = data.get('email')
         password = data.get('password')
         
-        print(f"🔐 Login attempt: {email}")
+        # I-print ang gi-input
+        print(f"🔐 Raw password entered: '{password}'")
+        
+        # Hash the entered password
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        
+        print(f"🔐 Hashed password: {hashed_password}")
         
         conn = get_db_connection()
         if conn is None:
@@ -52,7 +59,7 @@ def api_login():
             return jsonify({'success': False, 'message': 'Database connection failed'})
         
         cur = conn.cursor()
-        cur.execute("SELECT id, name, email, role FROM users WHERE email = %s AND password = %s", (email, password))
+        cur.execute("SELECT id, name, email, role FROM users WHERE email = %s AND password = %s", (email, hashed_password))
         user = cur.fetchone()
         
         print(f"📝 User found: {user}")
@@ -71,6 +78,9 @@ def api_login():
                 'user_id': user[0],
                 'user_name': user[1]
             })
+        else:
+            return jsonify({'success': False, 'message': 'Invalid email or password!'})
+            
     except Exception as e:
         print(f"❌ Login error: {e}")
         return jsonify({'success': False, 'message': str(e)})

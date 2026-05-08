@@ -11,8 +11,6 @@ function showPage(page) {
     if (page === 'dashboard') loadDashboard();
     if (page === 'bookings') loadBookings();
     if (page === 'profile') loadProfile();
-    if (page === 'notifications') loadNotifications();
-    if (page === 'payment') loadPaymentHistory(); 
     if (page === 'myreservations') loadMyReservations();
 }
 
@@ -34,77 +32,31 @@ async function loadBookings() {
     try {
         const response = await fetch('/api/bookings');
         const bookings = await response.json();
+        
         const tbody = document.getElementById('bookingsBody');
         
-        if (bookings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No bookings yet</td><｜PHYTHON｜>';
+        if (!bookings || bookings.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px;">No bookings yet</td></tr>';
         } else {
             tbody.innerHTML = bookings.map(b => `
                 <tr>
-                    <td style="padding: 12px;">${b.ref}</td>
-                    <td style="padding: 12px;">${b.from}</td>
-                    <td style="padding: 12px;">${b.to}</td>
-                    <td style="padding: 12px;">${b.date}</td>
-                    <td style="padding: 12px;">${b.passengers}</td>
-                    <td style="padding: 12px;"><span class="badge badge-success">${b.status}</span></td>
+                    <td style="padding: 12px;">${b.ref || 'N/A'}</td>
+                    <td style="padding: 12px;">${b.from || 'N/A'}</td>
+                    <td style="padding: 12px;">${b.to || 'N/A'}</td>
+                    <td style="padding: 12px;">${b.date || 'N/A'}</td>
+                    <td style="padding: 12px;">${b.passengers || 0}</td>
+                    <td style="padding: 12px;"><span class="badge ${b.status === 'confirmed' ? 'badge-success' : 'badge-warning'}">${b.status || 'pending'}</span></td>
                     <td style="padding: 12px;">
                         <button onclick="viewTicket('${b.ref}')" class="btn-primary" style="padding: 5px 10px; font-size: 12px;">View Ticket</button>
-                        <button onclick="requestCancellation('${b.ref}')" class="btn-cancel" style="background: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; margin-left: 5px;">Cancel</button>
                     </td>
-                </td>
-            `).join('');
-        }
-    } catch (error) {
-        console.error('Error loading bookings:', error);
-    }
-}
-
-// Load notifications (NEW FUNCTION)
-// Load live notifications from database
-async function loadNotifications() {
-    try {
-        const response = await fetch('/api/notifications');
-        const notifications = await response.json();
-        const container = document.getElementById('notifications-list');
-        const badge = document.getElementById('notif-badge');
-        
-        if (notifications.length === 0) {
-            container.innerHTML = '<div style="padding: 40px; text-align: center; color: #94a3b8;">No notifications yet</div>';
-            if (badge) badge.style.display = 'none';
-        } else {
-            const unreadCount = notifications.filter(n => !n.read).length;
-            if (badge) {
-                badge.textContent = unreadCount;
-                badge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
-            }
-            container.innerHTML = notifications.map(n => `
-                <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-start; ${!n.read ? 'background: #f8fafc; cursor: pointer;' : ''}" onclick="${!n.read ? `markAsRead(${n.id})` : ''}">
-                    <div style="width: 36px; height: 36px; border-radius: 10px; background: ${n.bg}; display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="${n.icon}" style="width: 18px; height: 18px; color: ${n.color};"></i>
-                    </div>
-                    <div style="flex: 1;">
-                        <p style="font-weight: 600; color: #1e293b;">${n.title}</p>
-                        <p style="font-size: 14px; color: #64748b;">${n.message}</p>
-                        <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">${n.time}</p>
-                    </div>
-                    ${!n.read ? '<span style="width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span>' : ''}
-                </div>
+                </table>
             `).join('');
         }
         if (typeof lucide !== 'undefined') lucide.createIcons();
     } catch (error) {
-        console.error('Error loading notifications:', error);
-    }
-}
-
-// Mark notification as read
-async function markAsRead(notifId) {
-    try {
-        await fetch(`/api/notifications/${notifId}/read`, { method: 'POST' });
-        loadNotifications(); // Reload to update badge
-        loadDashboard(); // Update badge count in sidebar
-    } catch (error) {
-        console.error('Error marking as read:', error);
+        console.error('Error loading bookings:', error);
+        const tbody = document.getElementById('bookingsBody');
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color: red;">Error loading bookings</td></tr>';
     }
 }
 
@@ -198,39 +150,6 @@ async function updateProfile(event) {
     }
 }
 
-// Load payment history
-async function loadPaymentHistory() {
-    try {
-        const response = await fetch('/api/payments');
-        const payments = await response.json();
-        const container = document.getElementById('paymentHistoryGrid');
-        
-        if (payments.length === 0) {
-            container.innerHTML = '<div style="padding: 40px; text-align: center; color: #94a3b8;">No payment history</div>';
-        } else {
-            container.innerHTML = payments.map(p => `
-                <div style="background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; transition: all 0.2s;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                        <div>
-                            <p style="font-weight: 600; color: #1e293b;">${p.route}</p>
-                            <p style="font-size: 12px; color: #64748b; margin-top: 4px;">${p.method} · ${p.date}</p>
-                        </div>
-                        <p style="font-size: 18px; font-weight: bold; color: #0077b6;">${p.amount}</p>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                        <span class="badge ${p.status === 'paid' ? 'badge-success' : 'badge-warning'}">${p.status === 'paid' ? 'Paid ✓' : 'Pending'}</span>
-                        ${p.status !== 'paid' ? '<button onclick="payNow()" class="btn-primary" style="padding: 6px 12px; font-size: 12px; width: auto;">Pay Now</button>' : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-    } catch (error) {
-        console.error('Error loading payment history:', error);
-        const container = document.getElementById('paymentHistoryGrid');
-        if (container) container.innerHTML = '<div style="padding: 40px; text-align: center; color: #ef4444;">Error loading payment history</div>';
-    }
-}
-
 // Check authentication
 async function checkAuth() {
     try {
@@ -275,33 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-async function viewTicket(bookingRef) {
-    try {
-        const response = await fetch(`/ticket/view/${bookingRef}`);
-        const ticket = await response.json();
-        
-        // Display QR code
-        const qrContainer = document.getElementById('ticketQR');
-        qrContainer.innerHTML = `<img src="data:image/png;base64,${ticket.qr_code}" width="200" height="200">`;
-        
-        // Display ticket details
-        const detailsContainer = document.getElementById('ticketDetails');
-        detailsContainer.innerHTML = `
-            <p><strong>Booking Ref:</strong> ${ticket.ref}</p>
-            <p><strong>Name:</strong> ${ticket.name}</p>
-            <p><strong>Route:</strong> ${ticket.from} → ${ticket.to}</p>
-            <p><strong>Date:</strong> ${ticket.date} at ${ticket.time}</p>
-            <p><strong>Passengers:</strong> ${ticket.passengers}</p>
-            <p><strong>Amount:</strong> ₱${ticket.amount}</p>
-            <p><small>Booked: ${ticket.booked_date}</small></p>
-        `;
-        
-        document.getElementById('ticketModal').style.display = 'flex';
-    } catch (error) {
-        alert('Error loading ticket');
-    }
-}
-
 function closeTicketModal() {
     document.getElementById('ticketModal').style.display = 'none';
 }
@@ -310,22 +202,39 @@ function printTicket() {
     const printContent = document.getElementById('ticketContent').innerHTML;
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
-        <html><head><title>SeaCloud Ticket</title>
-        <style>body{font-family:Arial;padding:20px;text-align:center;}</style>
-        </head><body>${printContent}</body></html>
+        <html>
+            <head>
+                <title>SeaCloud Ticket - ${document.querySelector('#ticketDetails p:first-child').innerText || 'Ticket'}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                    .ticket { border: 1px solid #ccc; padding: 20px; border-radius: 10px; max-width: 400px; margin: 0 auto; }
+                    @media print {
+                        body { margin: 0; padding: 0; }
+                        button { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="ticket">
+                    ${printContent}
+                </div>
+                <p style="margin-top: 20px;">Thank you for choosing SeaCloud!</p>
+            </body>
+        </html>
     `);
     printWindow.print();
+    printWindow.close();
 }
 
-// Auto-refresh dashboard every 10 seconds
+// Auto-refresh dashboard every 30 seconds (tipid sa memory)
 setInterval(() => {
     if (document.getElementById('dashboard-page').classList.contains('active')) {
         loadDashboard();
         loadBookings();
     }
-}, 10000);
+}, 30000);
 
-// Load my reservations (upcoming bookings) - Column layout
+// Load my reservations (upcoming bookings)
 async function loadMyReservations() {
     try {
         const response = await fetch('/api/my-reservations');
@@ -336,24 +245,69 @@ async function loadMyReservations() {
             container.innerHTML = '<div style="padding: 40px; text-align: center; color: #94a3b8;">No upcoming reservations</div>';
         } else {
             container.innerHTML = reservations.map(r => `
-                <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                    <div style="flex: 2;">
-                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                            <div>
-                                <p style="font-weight: bold; font-size: 16px; color: #1e293b;">${r.from} → ${r.to}</p>
-                                <p style="font-size: 12px; color: #64748b; margin-top: 4px;">${r.ref}</p>
+                <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+                        <div style="flex: 2;">
+                            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                                <div>
+                                    <p style="font-weight: bold; font-size: 16px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0077b6" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                            <circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                        ${r.from} → ${r.to}
+                                    </p>
+                                    <p style="font-size: 12px; color: #64748b; margin-top: 4px;">${r.ref}</p>
+                                </div>
+                                <span class="badge ${r.status === 'confirmed' ? 'badge-success' : 'badge-warning'}" style="background: ${r.status === 'confirmed' ? '#ecfdf5' : '#fef3c7'}; color: ${r.status === 'confirmed' ? '#059669' : '#d97706'}; padding: 4px 12px; border-radius: 20px; font-size: 12px;">${r.status === 'confirmed' ? 'Confirmed' : 'Pending'}</span>
                             </div>
-                            <span class="badge ${r.status === 'pending' ? 'badge-warning' : 'badge-success'}" style="background: ${r.status === 'pending' ? '#fef3c7' : '#ecfdf5'}; color: ${r.status === 'pending' ? '#d97706' : '#059669'}; padding: 4px 12px; border-radius: 20px; font-size: 12px;">${r.status === 'pending' ? 'Pending Payment' : 'Confirmed'}</span>
+                            <div style="display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap;">
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                            <line x1="16" y1="2" x2="16" y2="6"/>
+                                            <line x1="8" y1="2" x2="8" y2="6"/>
+                                            <line x1="3" y1="10" x2="21" y2="10"/>
+                                        </svg>
+                                        Date
+                                    </span>
+                                    <br><span style="font-size: 14px;">${r.date}</span>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <polyline points="12 6 12 12 16 14"/>
+                                        </svg>
+                                        Time
+                                    </span>
+                                    <br><span style="font-size: 14px;">${r.time}</span>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                        </svg>
+                                        Passengers
+                                    </span>
+                                    <br><span style="font-size: 14px;">${r.passengers}</span>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                                        </svg>
+                                        Fare
+                                    </span>
+                                    <br><span style="font-size: 14px; font-weight: bold; color: #0077b6;">₱${r.amount}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap;">
-                            <div><span style="font-size: 12px; color: #64748b;">📅 Date</span><br><span style="font-size: 14px;">${r.date}</span></div>
-                            <div><span style="font-size: 12px; color: #64748b;">⏰ Time</span><br><span style="font-size: 14px;">${r.time}</span></div>
-                            <div><span style="font-size: 12px; color: #64748b;">👥 Passengers</span><br><span style="font-size: 14px;">${r.passengers}</span></div>
-                            <div><span style="font-size: 12px; color: #64748b;">💰 Fare</span><br><span style="font-size: 14px; font-weight: bold; color: #0077b6;">₱${r.amount}</span></div>
-                        </div>
-                    </div>
-                    <div>
-                        <button onclick="requestCancellation('${r.ref}')" class="btn-cancel" style="background: #dc3545; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px;">❌ Cancel</button>
                     </div>
                 </div>
             `).join('');
@@ -365,6 +319,48 @@ async function loadMyReservations() {
         if (container) container.innerHTML = '<div style="padding: 40px; text-align: center; color: #ef4444;">Error loading reservations</div>';
     }
 }
-
+    
+// View Ticket Function
+async function viewTicket(bookingRef) {
+    try {
+        const response = await fetch(`/api/booking/${bookingRef}`);
+        const booking = await response.json();
+        
+        if (booking.error) {
+            alert('Booking not found!');
+            return;
+        }
+        
+        const ticketDetails = document.getElementById('ticketDetails');
+        const ticketQR = document.getElementById('ticketQR');
+        
+        // Generate simple QR code (text only)
+        ticketQR.innerHTML = `
+            <div style="background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                <div style="font-family: monospace; font-size: 14px; color: white; letter-spacing: 2px; text-align: center;">
+                    ${booking.ref}
+                </div>
+            </div>
+        `;
+        
+        ticketDetails.innerHTML = `
+            <div style="text-align: left; margin-top: 15px;">
+                <p><strong>Booking Reference:</strong> ${booking.ref}</p>
+                <p><strong>Route:</strong> ${booking.from} → ${booking.to}</p>
+                <p><strong>Date:</strong> ${booking.departure_date || booking.date}</p>
+                <p><strong>Time:</strong> ${booking.time || 'N/A'}</p>
+                <p><strong>Passengers:</strong> ${booking.passengers}</p>
+                <p><strong>Total Amount:</strong> ₱${booking.amount}</p>
+                <p><strong>Status:</strong> ${booking.status}</p>
+            </div>
+        `;
+        
+        document.getElementById('ticketModal').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error fetching ticket:', error);
+        alert('Error loading ticket details');
+    }
+}
 // Initialize
 checkAuth();

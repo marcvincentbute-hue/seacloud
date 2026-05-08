@@ -35,12 +35,15 @@ async function loadUsers() {
         const tbody = document.getElementById('usersTableBody');
         tbody.innerHTML = users.map(u => `
             <tr>
-                <td>${u.id}</td>
-                <td>${u.name}</td>
-                <td>${u.email}</td>
-                <td>${u.phone || 'N/A'}</td>
-                <td>${u.role}</td>
-                <td><button class="btn-danger" onclick="deleteUser(${u.id})">Delete</button></td>
+                <td style="padding: 12px;">${u.id}</td>
+                <td style="padding: 12px;">${u.name}</td>
+                <td style="padding: 12px;">${u.email}</td>
+                <td style="padding: 12px;">${u.phone || 'N/A'}</td>
+                <td style="padding: 12px;">${u.role}</td>
+                <td style="padding: 12px; white-space: nowrap;">
+                    <button onclick="openEditUserModal(${u.id}, '${u.name}', '${u.email}', '${u.phone}', '${u.role}')" style="background: #ffc107; color: #333; padding: 4px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; margin-right: 5px;">Edit</button>
+                    <button onclick="deleteUser(${u.id})" style="background: #dc3545; color: white; padding: 4px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer;">Delete</button>
+                </td>
             </tr>
         `).join('');
     } catch (error) {
@@ -53,15 +56,22 @@ async function loadBoats() {
         const res = await fetch('/api/admin/boats');
         const boats = await res.json();
         const tbody = document.getElementById('boatsTableBody');
-        tbody.innerHTML = boats.map(b => `
-            <tr>
-                <td>${b.id}</td>
-                <td>${b.name}</td>
-                <td>${b.capacity}</td>
-                <td>${b.status}</td>
-                <td><button class="btn-danger" onclick="deleteBoat(${b.id})">Delete</button></td>
-            </tr>
-        `).join('');
+        
+        if (boats.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">No boats found</td></tr>';
+        } else {
+            tbody.innerHTML = boats.map(b => `
+                <tr>
+                    <td style="padding: 12px;"><strong>${b.name}</strong></td>
+                    <td style="padding: 12px;">${b.capacity} seats</td>
+                    <td style="padding: 12px;"><span class="badge ${b.status === 'available' ? 'badge-success' : 'badge-warning'}">${b.status}</span></td>
+                    <td style="padding: 12px; white-space: nowrap;">
+                        <button onclick="openEditBoatModalAdmin(${b.id}, '${b.name}', ${b.capacity}, '${b.status}')" style="background: #ffc107; color: #333; padding: 4px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; margin-right: 5px;">Edit</button>
+                        <button onclick="deleteBoat(${b.id})" style="background: #dc3545; color: white; padding: 4px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer;">Delete</button>
+                    </td>
+                 `
+            ).join('');
+        }
     } catch (error) {
         console.error('Error loading boats:', error);
     }
@@ -74,14 +84,19 @@ async function loadTrips() {
         const tbody = document.getElementById('tripsTableBody');
         tbody.innerHTML = trips.map(t => `
             <tr>
-                <td>${t.id}</td>
-                <td>${t.from_port}</td>
-                <td>${t.to_port}</td>
-                <td>${t.departure_date}</td>
-                <td>${t.departure_time}</td>
-                <td>₱${t.price}</td>
-                <td>${t.boat_name || 'N/A'}</td>
-                <td><button class="btn-danger" onclick="deleteTrip(${t.id})">Delete</button></td>
+                <td style="padding: 12px;">${t.id}</td>
+                <td style="padding: 12px;">${t.boat_name || 'N/A'}</td>
+                <td style="padding: 12px;">${t.from_port}</td>
+                <td style="padding: 12px;">${t.to_port}</td>
+                <td style="padding: 12px;">${t.departure_date}</td>
+                <td style="padding: 12px;">${t.departure_time}</td>
+                <td style="padding: 12px;">₱${t.price}</td>
+                <td style="padding: 12px;">${t.available_seats}</td>
+                <td style="padding: 12px;">${t.status || 'scheduled'}</td>
+                <td style="padding: 12px; white-space: nowrap;">
+                    <button onclick='openEditTripModal(${JSON.stringify(t)})' style="background: #ffc107; color: #333; padding: 4px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; margin-right: 5px;">Edit</button>
+                    <button onclick="deleteTrip(${t.id})" style="background: #dc3545; color: white; padding: 4px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer;">Delete</button>
+                </td>
             </tr>
         `).join('');
     } catch (error) {
@@ -242,6 +257,309 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/login';
     }
 });
+
+// Edit Boat Function
+async function editBoat(boatId) {
+    const newName = prompt('Enter new boat name:');
+    if (!newName) return;
+    
+    const newCapacity = prompt('Enter new capacity:');
+    if (!newCapacity) return;
+    
+    const newStatus = prompt('Enter new status (available/maintenance/inactive):');
+    if (!newStatus) return;
+    
+    try {
+        const response = await fetch(`/api/admin/boats/${boatId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: newName, capacity: parseInt(newCapacity), status: newStatus })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert('Boat updated successfully!');
+            loadBoats();
+            loadDashboard();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        alert('Error updating boat');
+    }
+}
+
+// ========== EDIT USER FUNCTIONS ==========
+function openEditUserModal(userId, name, email, phone, role) {
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editUserName').value = name;
+    document.getElementById('editUserEmail').value = email;
+    document.getElementById('editUserPhone').value = phone || '';
+    document.getElementById('editUserRole').value = role;
+    document.getElementById('editUserModal').style.display = 'flex';
+}
+
+function closeEditUserModal() {
+    document.getElementById('editUserModal').style.display = 'none';
+}
+
+async function updateUser(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('editUserId').value;
+    const name = document.getElementById('editUserName').value;
+    const email = document.getElementById('editUserEmail').value;
+    const phone = document.getElementById('editUserPhone').value;
+    const role = document.getElementById('editUserRole').value;
+    
+    try {
+        const response = await fetch(`/api/admin/users/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, phone, role })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('User updated successfully!');
+            closeEditUserModal();
+            loadUsers();
+            loadDashboard();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error updating user:', error);
+        alert('Failed to update user');
+    }
+}
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const userModal = document.getElementById('userModal');
+    const editUserModal = document.getElementById('editUserModal');
+    const addBoatModal = document.getElementById('addBoatModalAdmin');
+    const editBoatModal = document.getElementById('editBoatModalAdmin');
+    const addTripModal = document.getElementById('addTripModalAdmin');
+    const editTripModal = document.getElementById('editTripModalAdmin');
+    
+    if (event.target === userModal) userModal.style.display = 'none';
+    if (event.target === editUserModal) editUserModal.style.display = 'none';
+    if (event.target === addBoatModal) addBoatModal.style.display = 'none';
+    if (event.target === editBoatModal) editBoatModal.style.display = 'none';
+    if (event.target === addTripModal) addTripModal.style.display = 'none';
+    if (event.target === editTripModal) editTripModal.style.display = 'none';
+}
+// ========== LOAD BOATS FOR ADMIN DROPDOWN ==========
+async function loadBoatsForAdmin() {
+    try {
+        const response = await fetch('/api/admin/boats');
+        const boats = await response.json();
+        
+        // For Add Trip Modal
+        const addSelect = document.getElementById('adminTripBoatId');
+        if (addSelect) {
+            addSelect.innerHTML = '<option value="">Select a boat</option>' + 
+                boats.map(b => `<option value="${b.id}">${b.name} (${b.capacity} seats)</option>`).join('');
+        }
+        
+        // For Edit Trip Modal
+        const editSelect = document.getElementById('editTripBoatId');
+        if (editSelect) {
+            editSelect.innerHTML = '<option value="">Select a boat</option>' + 
+                boats.map(b => `<option value="${b.id}">${b.name} (${b.capacity} seats)</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error loading boats:', error);
+    }
+}
+
+// ========== ADD TRIP (ADMIN) ==========
+function showAddTripModal() {
+    loadBoatsForAdmin();
+    document.getElementById('addTripModalAdmin').style.display = 'flex';
+}
+
+function closeAddTripModalAdmin() {
+    document.getElementById('addTripModalAdmin').style.display = 'none';
+}
+
+async function addAdminTrip(event) {
+    event.preventDefault();
+    
+    const data = {
+        boat_id: document.getElementById('adminTripBoatId').value,
+        from_port: document.getElementById('adminTripFrom').value,
+        to_port: document.getElementById('adminTripTo').value,
+        departure_date: document.getElementById('adminTripDate').value,
+        departure_time: document.getElementById('adminTripTime').value,
+        price: document.getElementById('adminTripPrice').value,
+        available_seats: document.getElementById('adminTripSeats').value
+    };
+    
+    if (data.from_port === data.to_port) {
+        alert('Departure and destination cannot be the same!');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/admin/trips', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Trip added successfully!');
+            closeAddTripModalAdmin();
+            loadTrips();
+            loadDashboard();
+            document.getElementById('addTripFormAdmin').reset();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error adding trip:', error);
+        alert('Failed to add trip');
+    }
+}
+
+// ========== EDIT TRIP (ADMIN) ==========
+function openEditTripModal(trip) {
+    document.getElementById('editTripId').value = trip.id;
+    document.getElementById('editTripBoatId').value = trip.boat_id;
+    document.getElementById('editTripFrom').value = trip.from_port;
+    document.getElementById('editTripTo').value = trip.to_port;
+    document.getElementById('editTripDate').value = trip.departure_date;
+    document.getElementById('editTripTime').value = trip.departure_time;
+    document.getElementById('editTripPrice').value = trip.price;
+    document.getElementById('editTripSeats').value = trip.available_seats;
+    loadBoatsForAdmin();
+    document.getElementById('editTripModalAdmin').style.display = 'flex';
+}
+
+function closeEditTripModalAdmin() {
+    document.getElementById('editTripModalAdmin').style.display = 'none';
+}
+
+async function updateAdminTrip(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('editTripId').value;
+    const data = {
+        boat_id: document.getElementById('editTripBoatId').value,
+        from_port: document.getElementById('editTripFrom').value,
+        to_port: document.getElementById('editTripTo').value,
+        departure_date: document.getElementById('editTripDate').value,
+        departure_time: document.getElementById('editTripTime').value,
+        price: document.getElementById('editTripPrice').value,
+        available_seats: document.getElementById('editTripSeats').value
+    };
+    
+    try {
+        const response = await fetch(`/api/admin/trips/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Trip updated successfully!');
+            closeEditTripModalAdmin();
+            loadTrips();
+            loadDashboard();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error updating trip:', error);
+        alert('Failed to update trip');
+    }
+}
+
+// ========== ADD BOAT (ADMIN) ==========
+function openAddBoatModalAdmin() {
+    document.getElementById('addBoatModalAdmin').style.display = 'flex';
+}
+
+function closeAddBoatModalAdmin() {
+    document.getElementById('addBoatModalAdmin').style.display = 'none';
+}
+
+async function addAdminBoat(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('adminBoatName').value;
+    const capacity = document.getElementById('adminBoatCapacity').value;
+    const status = document.getElementById('adminBoatStatus').value;
+    
+    try {
+        const response = await fetch('/api/admin/boats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, capacity, status })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Boat added successfully!');
+            closeAddBoatModalAdmin();
+            document.getElementById('addBoatFormAdmin').reset();
+            loadBoats();
+            loadDashboard();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error adding boat:', error);
+        alert('Failed to add boat');
+    }
+}
+
+// ========== EDIT BOAT (ADMIN) ==========
+function openEditBoatModalAdmin(boatId, name, capacity, status) {
+    document.getElementById('editBoatIdAdmin').value = boatId;
+    document.getElementById('editBoatNameAdmin').value = name;
+    document.getElementById('editBoatCapacityAdmin').value = capacity;
+    document.getElementById('editBoatStatusAdmin').value = status;
+    document.getElementById('editBoatModalAdmin').style.display = 'flex';
+}
+
+function closeEditBoatModalAdmin() {
+    document.getElementById('editBoatModalAdmin').style.display = 'none';
+}
+
+async function updateAdminBoat(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('editBoatIdAdmin').value;
+    const name = document.getElementById('editBoatNameAdmin').value;
+    const capacity = document.getElementById('editBoatCapacityAdmin').value;
+    const status = document.getElementById('editBoatStatusAdmin').value;
+    
+    try {
+        const response = await fetch(`/api/admin/boats/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, capacity, status })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Boat updated successfully!');
+            closeEditBoatModalAdmin();
+            loadBoats();
+            loadDashboard();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error updating boat:', error);
+        alert('Failed to update boat');
+    }
+}
 
 // Initialize
 checkAuth();

@@ -12,22 +12,22 @@ class Database:
     def connect(self):
         """Establish database connection"""
         try:
+            # Use Config for database settings
             self.connection = psycopg2.connect(
-                host="localhost",
-                database="seacloud_db",
-                user="postgres",
-                password="admin123",
-                port="5433"
+                host=Config.DB_HOST,
+                database=Config.DB_NAME,
+                user=Config.DB_USER,
+                password=Config.DB_PASSWORD,
+                port=Config.DB_PORT
             )
             self.cursor = self.connection.cursor()
-            print("✅ Database connected successfully!")
+            print(f"✅ Database connected to {Config.DB_HOST}:{Config.DB_PORT}/{Config.DB_NAME}")
             return True
         except OperationalError as e:
             print(f"❌ Database connection error: {e}")
             return False
     
     def disconnect(self):
-        """Close database connection"""
         if self.cursor:
             self.cursor.close()
         if self.connection:
@@ -35,7 +35,6 @@ class Database:
             print("✅ Database disconnected!")
     
     def execute_query(self, query, params=None):
-        """Execute a query and return results"""
         try:
             if params:
                 self.cursor.execute(query, params)
@@ -50,7 +49,6 @@ class Database:
             return None
     
     def execute_insert(self, query, params=None):
-        """Execute insert/update/delete query"""
         try:
             if params:
                 self.cursor.execute(query, params)
@@ -65,6 +63,5 @@ class Database:
             return False
     
     def get_last_id(self):
-        """Get last inserted ID"""
         self.cursor.execute("SELECT LASTVAL()")
         return self.cursor.fetchone()[0]

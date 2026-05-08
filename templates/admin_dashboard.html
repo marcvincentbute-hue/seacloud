@@ -60,55 +60,281 @@
 
         <!-- Users Page -->
         <div id="users-page" class="page">
-            <h2>Manage Users</h2>
-            <button class="btn-success" onclick="showAddUserModal()">+ Add New User</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0; font-size: 24px;">Manage Users</h2>
+                <button onclick="showAddUserModal()" style="background: #0077b6; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add New User
+                </button>
+            </div>
             <div class="table-container">
                 <table style="width:100%">
-                    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Actions</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody id="usersTableBody"></tbody>
                 </table>
             </div>
         </div>
 
+        <!-- Edit User Modal (Popup) -->
+        <div id="editUserModal" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Edit User</h3>
+                    <button onclick="closeEditUserModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="editUserForm" onsubmit="updateUser(event)">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="editUserName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="editUserEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" id="editUserPhone">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="editUserRole">
+                            <option value="customer">Customer</option>
+                            <option value="operator">Operator</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%;">Update User</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Boats Page -->
         <div id="boats-page" class="page">
-            <h2>Manage Boats</h2>
-            <div class="form-card" style="margin-bottom: 20px; max-width: 100%;">
-                <h3>Add New Boat</h3>
-                <form id="addBoatForm" onsubmit="addBoatFromForm(event)">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                        <div class="form-group"><label>Boat Name</label><input type="text" id="newBoatNameForm" required></div>
-                        <div class="form-group"><label>Capacity (seats)</label><input type="number" id="newBoatCapacityForm" required></div>
-                        <div class="form-group"><label>Status</label>
-                            <select id="newBoatStatusForm">
-                                <option value="available">Active</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="display: flex; align-items: end;">
-                            <button type="submit" class="btn-success">Add Boat</button>
-                            <button type="button" onclick="clearBoatForm()" class="btn-danger" style="margin-left: 10px;">Cancel</button>
-                        </div>
-                    </div>
-                </form>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0; font-size: 24px;">Manage Boats</h2>
+                <button onclick="openAddBoatModalAdmin()" style="background: #0077b6; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add Boat
+                </button>
             </div>
             <div class="table-container">
                 <table style="width:100%">
-                    <thead><tr><th>Boat Name</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Boat Name</th>
+                            <th>Capacity</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody id="boatsTableBody"></tbody>
                 </table>
             </div>
         </div>
 
+        <!-- Add Boat Modal (Admin) -->
+        <div id="addBoatModalAdmin" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Add New Boat</h3>
+                    <button onclick="closeAddBoatModalAdmin()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="addBoatFormAdmin" onsubmit="addAdminBoat(event)">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label>Boat Name</label>
+                        <input type="text" id="adminBoatName" placeholder="e.g., Sea Breeze" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label>Capacity (seats)</label>
+                        <input type="number" id="adminBoatCapacity" placeholder="20" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Status</label>
+                        <select id="adminBoatStatus">
+                            <option value="available">Available</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%; padding: 10px;">Add Boat</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Boat Modal (Admin) -->
+        <div id="editBoatModalAdmin" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Edit Boat</h3>
+                    <button onclick="closeEditBoatModalAdmin()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="editBoatFormAdmin" onsubmit="updateAdminBoat(event)">
+                    <input type="hidden" id="editBoatIdAdmin">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label>Boat Name</label>
+                        <input type="text" id="editBoatNameAdmin" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label>Capacity (seats)</label>
+                        <input type="number" id="editBoatCapacityAdmin" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Status</label>
+                        <select id="editBoatStatusAdmin">
+                            <option value="available">Available</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%; padding: 10px;">Update Boat</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Trips Page -->
         <div id="trips-page" class="page">
-            <h2>Manage Trips</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0; font-size: 24px;">Manage Trips</h2>
+                <button onclick="showAddTripModal()" style="background: #0077b6; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add Trip
+                </button>
+            </div>
             <div class="table-container">
                 <table style="width:100%">
-                    <thead><tr><th>ID</th><th>From</th><th>To</th><th>Date</th><th>Time</th><th>Price</th><th>Boat</th><th>Actions</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Boat</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Price</th>
+                            <th>Seats</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody id="tripsTableBody"></tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Add Trip Modal (Admin) -->
+        <div id="addTripModalAdmin" class="modal">
+            <div class="modal-content" style="max-width: 400px; max-height: 85vh; overflow-y: auto;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 18px;">Add New Trip</h3>
+                    <button onclick="closeAddTripModalAdmin()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="addTripFormAdmin" onsubmit="addAdminTrip(event)">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">Boat</label>
+                        <select id="adminTripBoatId" required style="padding: 6px; font-size: 13px;">
+                            <option value="">Select a boat</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">From</label>
+                        <select id="adminTripFrom" required style="padding: 6px; font-size: 13px;">
+                            <option value="">Select departure</option>
+                            <option value="Butuan Port">Butuan Port</option>
+                            <option value="Magallanes">Magallanes</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">To</label>
+                        <select id="adminTripTo" required style="padding: 6px; font-size: 13px;">
+                            <option value="">Select destination</option>
+                            <option value="Butuan Port">Butuan Port</option>
+                            <option value="Magallanes">Magallanes</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">Date</label>
+                        <input type="date" id="adminTripDate" required style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">Time</label>
+                        <input type="time" id="adminTripTime" required style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">Price (₱)</label>
+                        <input type="number" id="adminTripPrice" placeholder="250" required style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 13px;">Seats</label>
+                        <input type="number" id="adminTripSeats" placeholder="50" required style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%; padding: 8px;">Add Trip</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Trip Modal (Admin) -->
+        <div id="editTripModalAdmin" class="modal">
+            <div class="modal-content" style="max-width: 400px; max-height: 85vh; overflow-y: auto;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 18px;">Edit Trip</h3>
+                    <button onclick="closeEditTripModalAdmin()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="editTripFormAdmin" onsubmit="updateAdminTrip(event)">
+                    <input type="hidden" id="editTripId">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">Boat</label>
+                        <select id="editTripBoatId" required style="padding: 6px; font-size: 13px;">
+                            <option value="">Select a boat</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">From</label>
+                        <select id="editTripFrom" required style="padding: 6px; font-size: 13px;">
+                            <option value="">Select departure</option>
+                            <option value="Butuan Port">Butuan Port</option>
+                            <option value="Magallanes">Magallanes</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">To</label>
+                        <select id="editTripTo" required style="padding: 6px; font-size: 13px;">
+                            <option value="">Select destination</option>
+                            <option value="Butuan Port">Butuan Port</option>
+                            <option value="Magallanes">Magallanes</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">Date</label>
+                        <input type="date" id="editTripDate" required style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">Time</label>
+                        <input type="time" id="editTripTime" required style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label style="font-size: 13px;">Price (₱)</label>
+                        <input type="number" id="editTripPrice" required style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 13px;">Seats</label>
+                        <input type="number" id="editTripSeats" required style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%; padding: 8px;">Update Trip</button>
+                </form>
             </div>
         </div>
 

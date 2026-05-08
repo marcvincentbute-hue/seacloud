@@ -218,29 +218,36 @@
     border-bottom: 1px solid #eee;
 }
 
-/* Payment Methods */
-.payment-options {
-    display: flex;
-    gap: 15px;
-    margin-top: 10px;
+
+/* Para magtapad ang buttons sa Actions column */
+.table-container table td:last-child {
+    white-space: nowrap;
 }
 
-.payment-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #f9f9f9;
+.table-container table td:last-child button {
+    display: inline-block;
+    width: auto;
+    margin: 0 4px;
 }
 
-.payment-option img {
-    width: 40px;
+/* Optional: Para mas compact ang table */
+.table-container table {
+    width: 100%;
+    table-layout: fixed;
 }
 
-.payment-option.selected {
-    border-color: #28a745;
-    background: #e8f5e9;
+.table-container table td:first-child {
+    width: 35%; /* Boat name column */
+}
+
+.table-container table td:nth-child(2) {
+    width: 20%; /* Capacity column */
+}
+
+.table-container table td:nth-child(3) {
+    width: 25%; /* Status column */
+}
+
+.table-container table td:last-child {
+    width: 20%; /* Actions column */
 }

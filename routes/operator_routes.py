@@ -27,86 +27,59 @@ def api_operator_boats():
         return jsonify({'error': 'Unauthorized'})
     db = Database()
     db.connect()
-    results = db.execute_query("SELECT id, name, capacity, status FROM boats WHERE operator_id = %s", (session['user_id'],))
+    
+    results = db.execute_query("""
+        SELECT id, name, capacity, status 
+        FROM boats 
+        WHERE operator_id = %s
+    """, (session['user_id'],))
+    
     db.disconnect()
-    boats = [{'id': r[0], 'name': r[1], 'capacity': r[2], 'status': r[3]} for r in results]
+    
+    boats = []
+    if results:
+        boats = [{'id': r[0], 'name': r[1], 'capacity': r[2], 'status': r[3]} for r in results]
+    
     return jsonify(boats)
 
-@operator_bp.route('/trips')
-def api_operator_trips():
+@operator_bp.route('/boats', methods=['POST'])
+def api_operator_add_boat():
+    """Add a new boat for the operator"""
     if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'})
-    db = Database()
-    db.connect()
-    results = db.execute_query("SELECT id, from_port, to_port, departure_date, departure_time, price FROM trips WHERE operator_id = %s", (session['user_id'],))
-    db.disconnect()
-    trips = [{'id': r[0], 'from_port': r[1], 'to_port': r[2], 'departure_date': str(r[3]), 'departure_time': str(r[4]), 'price': float(r[5])} for r in results]
-    return jsonify(trips)
-
-@operator_bp.route('/bookings')
-def api_operator_bookings():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'})
-    db = Database()
-    db.connect()
-    results = db.execute_query("""
-        SELECT b.booking_ref, b.customer_name, t.from_port, t.to_port, t.departure_date, b.passengers
-        FROM bookings b JOIN trips t ON b.trip_id = t.id WHERE t.operator_id = %s
-    """, (session['user_id'],))
-    db.disconnect()
-    bookings = [{'ref': r[0], 'customer_name': r[1], 'from_port': r[2], 'to_port': r[3], 'departure_date': str(r[4]), 'passengers': r[5]} for r in results]
-    return jsonify(bookings)
-
-@operator_bp.route('/income')
-def api_operator_income():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'})
-    
-    db = Database()
-    db.connect()
-    current_month = datetime.now().strftime('%Y-%m')
-    results = db.execute_query("""
-        SELECT COALESCE(SUM(b.total_amount), 0)
-        FROM bookings b JOIN trips t ON b.trip_id = t.id
-        WHERE t.operator_id = %s AND TO_CHAR(b.booking_date, 'YYYY-MM') = %s AND b.status = 'confirmed'
-    """, (session['user_id'], current_month))
-    current_month_income = results[0][0] if results else 0
-    
-    monthly_results = db.execute_query("""
-        SELECT TO_CHAR(DATE_TRUNC('month', b.booking_date), 'YYYY-MM') as month,
-               COUNT(DISTINCT t.id) as total_trips,
-               COALESCE(SUM(b.passengers), 0) as total_passengers,
-               COALESCE(SUM(b.total_amount), 0) as total_income
-        FROM bookings b JOIN trips t ON b.trip_id = t.id
-        WHERE t.operator_id = %s AND b.status = 'confirmed'
-        GROUP BY DATE_TRUNC('month', b.booking_date)
-        ORDER BY DATE_TRUNC('month', b.booking_date) DESC LIMIT 6
-    """, (session['user_id'],))
-    db.disconnect()
-    
-    income_breakdown = []
-    for row in monthly_results:
-        income_breakdown.append({'month': row[0], 'total_trips': row[1], 'total_passengers': row[2], 'total_income': float(row[3])})
-    
-    return jsonify({'current_month': datetime.now().strftime('%B %Y'), 'current_month_income': float(current_month_income), 'income_breakdown': income_breakdown})
-
-@operator_bp.route('/boats/<int:boat_id>/status', methods=['PUT'])
-def api_update_boat_status(boat_id):
-    """Update boat status (available/maintenance/unavailable)"""
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'})
+        return jsonify({'success': False, 'message': 'Unauthorized'})
     
     data = request.json
-    new_status = data.get('status')  # available, maintenance, unavailable
+    name = data.get('name')
+    capacity = data.get('capacity')
+    status = data.get('status', 'available')
     
-    valid_statuses = ['available', 'maintenance', 'unavailable']
-    if new_status not in valid_statuses:
-        return jsonify({'success': False, 'message': 'Invalid status'})
+    if not name or not capacity:
+        return jsonify({'success': False, 'message': 'Name and capacity required'})
     
     db = Database()
     db.connect()
     
-    # Check if boat belongs to operator
+    try:
+        db.execute_insert("""
+            INSERT INTO boats (name, capacity, operator_id, status)
+            VALUES (%s, %s, %s, %s)
+        """, (name, capacity, session['user_id'], status))
+        db.disconnect()
+        return jsonify({'success': True, 'message': 'Boat added successfully'})
+    except Exception as e:
+        db.disconnect()
+        print(f"Error adding boat: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@operator_bp.route('/boats/<int:boat_id>', methods=['DELETE'])
+def api_operator_delete_boat(boat_id):
+    """Delete a boat"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    db = Database()
+    db.connect()
+    
     result = db.execute_query(
         "SELECT id FROM boats WHERE id = %s AND operator_id = %s",
         (boat_id, session['user_id'])
@@ -116,7 +89,175 @@ def api_update_boat_status(boat_id):
         db.disconnect()
         return jsonify({'success': False, 'message': 'Boat not found'})
     
-    # Update boat status
+    success = db.execute_insert("DELETE FROM boats WHERE id = %s", (boat_id,))
+    db.disconnect()
+    
+    if success:
+        return jsonify({'success': True, 'message': 'Boat deleted successfully'})
+    return jsonify({'success': False, 'message': 'Failed to delete boat'})
+
+@operator_bp.route('/boats/<int:boat_id>', methods=['PUT'])
+def api_operator_update_boat(boat_id):
+    """Update a boat"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    data = request.json
+    name = data.get('name')
+    capacity = data.get('capacity')
+    status = data.get('status')
+    
+    db = Database()
+    db.connect()
+    
+    result = db.execute_query(
+        "SELECT id FROM boats WHERE id = %s AND operator_id = %s",
+        (boat_id, session['user_id'])
+    )
+    
+    if not result:
+        db.disconnect()
+        return jsonify({'success': False, 'message': 'Boat not found'})
+    
+    success = db.execute_insert(
+        "UPDATE boats SET name = %s, capacity = %s, status = %s WHERE id = %s",
+        (name, capacity, status, boat_id)
+    )
+    db.disconnect()
+    
+    if success:
+        return jsonify({'success': True, 'message': 'Boat updated successfully'})
+    return jsonify({'success': False, 'message': 'Failed to update boat'})
+
+@operator_bp.route('/trips')
+def api_operator_trips():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'})
+    db = Database()
+    db.connect()
+    results = db.execute_query("""
+        SELECT t.id, t.from_port, t.to_port, t.departure_date, t.departure_time, t.price, t.available_seats, b.name as boat_name, t.status
+        FROM trips t
+        JOIN boats b ON t.boat_id = b.id
+        WHERE t.operator_id = %s AND t.status != 'completed'
+        ORDER BY t.departure_date DESC
+    """, (session['user_id'],))
+    db.disconnect()
+    
+    trips = []
+    if results:
+        for row in results:
+            trips.append({
+                'id': row[0],
+                'from_port': row[1],
+                'to_port': row[2],
+                'departure_date': str(row[3]),
+                'departure_time': str(row[4])[:5] if row[4] else 'N/A',
+                'price': float(row[5]),
+                'available_seats': row[6],
+                'boat_name': row[7],
+                'status': row[8]
+            })
+    
+    return jsonify(trips)
+
+@operator_bp.route('/trips', methods=['POST'])
+def api_operator_add_trip():
+    """Add a new trip for the operator"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    data = request.json
+    boat_id = data.get('boat_id')
+    from_port = data.get('from_port')
+    to_port = data.get('to_port')
+    departure_date = data.get('departure_date')
+    departure_time = data.get('departure_time')
+    price = data.get('price')
+    available_seats = data.get('available_seats')
+    
+    print(f"📝 Adding trip: {from_port} → {to_port}, boat_id: {boat_id}")
+    
+    if not all([boat_id, from_port, to_port, departure_date, departure_time, price, available_seats]):
+        return jsonify({'success': False, 'message': 'All fields required'})
+    
+    db = Database()
+    db.connect()
+    
+    try:
+        db.execute_insert("""
+            INSERT INTO trips (boat_id, from_port, to_port, departure_date, departure_time, price, available_seats, status, operator_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'scheduled', %s)
+        """, (boat_id, from_port, to_port, departure_date, departure_time, price, available_seats, session['user_id']))
+        
+        db.disconnect()
+        print("✅ Trip added successfully!")
+        return jsonify({'success': True, 'message': 'Trip added successfully'})
+    except Exception as e:
+        db.disconnect()
+        print(f"❌ Error adding trip: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@operator_bp.route('/bookings')
+def api_operator_bookings():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'})
+    
+    db = Database()
+    db.connect()
+    
+    # FIXED: Gamitin ang boat.operator_id para makuha ang operator's bookings
+    results = db.execute_query("""
+        SELECT b.booking_ref, u.name, t.from_port, t.to_port, t.departure_date, b.passengers
+        FROM bookings b 
+        JOIN trips t ON b.trip_id = t.id 
+        JOIN boats bo ON t.boat_id = bo.id
+        JOIN users u ON b.customer_id = u.id
+        WHERE bo.operator_id = %s
+        ORDER BY t.departure_date DESC
+    """, (session['user_id'],))
+    
+    db.disconnect()
+    
+    bookings = []
+    if results:
+        for row in results:
+            bookings.append({
+                'ref': row[0],
+                'customer_name': row[1],
+                'from_port': row[2],
+                'to_port': row[3],
+                'departure_date': str(row[4]),
+                'passengers': row[5]
+            })
+    
+    return jsonify(bookings)
+
+@operator_bp.route('/boats/<int:boat_id>/status', methods=['PUT'])
+def api_update_boat_status(boat_id):
+    """Update boat status (available/maintenance/unavailable)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'})
+    
+    data = request.json
+    new_status = data.get('status')
+    
+    valid_statuses = ['available', 'maintenance', 'unavailable']
+    if new_status not in valid_statuses:
+        return jsonify({'success': False, 'message': 'Invalid status'})
+    
+    db = Database()
+    db.connect()
+    
+    result = db.execute_query(
+        "SELECT id FROM boats WHERE id = %s AND operator_id = %s",
+        (boat_id, session['user_id'])
+    )
+    
+    if not result:
+        db.disconnect()
+        return jsonify({'success': False, 'message': 'Boat not found'})
+    
     success = db.execute_insert(
         "UPDATE boats SET status = %s WHERE id = %s",
         (new_status, boat_id)
@@ -124,16 +265,7 @@ def api_update_boat_status(boat_id):
     db.disconnect()
     
     if success:
-        # Log the status change
-        from models.audit import AuditLog
-        AuditLog.log(
-            user_id=session['user_id'],
-            user_name=session['user_name'],
-            action='UPDATE_STATUS',
-            table_name='boats',
-            record_id=boat_id,
-            new_data=f"Status changed to {new_status}"
-        )
+        print(f"Boat {boat_id} status updated to {new_status} by operator {session['user_id']}")
         return jsonify({'success': True, 'message': f'Boat status updated to {new_status}'})
     
     return jsonify({'success': False, 'message': 'Failed to update status'})
@@ -144,11 +276,11 @@ def api_get_available_boats():
     db = Database()
     db.connect()
     results = db.execute_query(
-        "SELECT id, name, capacity FROM boats WHERE status = 'available' AND is_deleted = FALSE"
+        "SELECT id, name, capacity FROM boats WHERE status = 'available'"
     )
     db.disconnect()
     
-    boats = [{'id': r[0], 'name': r[1], 'capacity': r[2]} for r in results]
+    boats = [{'id': r[0], 'name': r[1], 'capacity': r[2]} for r in results] if results else []
     return jsonify(boats)
 
 @operator_bp.route('/boats/maintenance', methods=['POST'])
@@ -165,7 +297,6 @@ def api_report_maintenance():
     db = Database()
     db.connect()
     
-    # Check boat ownership
     result = db.execute_query(
         "SELECT id FROM boats WHERE id = %s AND operator_id = %s",
         (boat_id, session['user_id'])
@@ -175,26 +306,47 @@ def api_report_maintenance():
         db.disconnect()
         return jsonify({'success': False, 'message': 'Boat not found'})
     
-    # Update status to maintenance
     success = db.execute_insert(
         "UPDATE boats SET status = 'maintenance' WHERE id = %s",
         (boat_id,)
     )
-    
-    # Log maintenance report
-    if success:
-        from models.audit import AuditLog
-        AuditLog.log(
-            user_id=session['user_id'],
-            user_name=session['user_name'],
-            action='MAINTENANCE',
-            table_name='boats',
-            record_id=boat_id,
-            new_data=f"Maintenance: {reason}, Estimated days: {estimated_days}"
-        )
-    
     db.disconnect()
     
     if success:
+        print(f"Boat {boat_id} marked for maintenance by operator {session['user_id']}: {reason}")
         return jsonify({'success': True, 'message': 'Boat marked for maintenance'})
     return jsonify({'success': False, 'message': 'Failed to update'})
+
+@operator_bp.route('/trips/<int:trip_id>/complete', methods=['PUT'])
+def api_complete_trip(trip_id):
+    """Mark a trip as completed"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    print(f"📝 Completing trip {trip_id} for operator {session['user_id']}")
+    
+    db = Database()
+    db.connect()
+    
+    # Check if trip belongs to operator
+    result = db.execute_query(
+        "SELECT id FROM trips WHERE id = %s AND operator_id = %s",
+        (trip_id, session['user_id'])
+    )
+    
+    if not result:
+        db.disconnect()
+        return jsonify({'success': False, 'message': 'Trip not found'})
+    
+    # Update status to completed
+    success = db.execute_insert(
+        "UPDATE trips SET status = 'completed' WHERE id = %s",
+        (trip_id,)
+    )
+    db.disconnect()
+    
+    if success:
+        print(f"✅ Trip {trip_id} marked as completed")
+        return jsonify({'success': True, 'message': 'Trip marked as completed'})
+    
+    return jsonify({'success': False, 'message': 'Failed to complete trip'})

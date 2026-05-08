@@ -32,15 +32,13 @@ def api_get_trips():
     to_port = request.args.get('to')
     date = request.args.get('date')
     
-    # New filter parameters
-    time_filter = request.args.get('time')  # morning, afternoon, evening
-    boat_type = request.args.get('boat_type')  # standard, fast, luxury
+    time_filter = request.args.get('time')
+    boat_type = request.args.get('boat_type')
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     
     trips = Trip.search(from_port, to_port, date)
     
-    # Apply filters
     if time_filter:
         trips = [t for t in trips if filter_by_time(t['time'], time_filter)]
     
@@ -63,14 +61,11 @@ def api_book_ticket():
     data = request.json
     trip_id = data.get('trip_id')
     passengers = data.get('passengers', 1)
-    payment_method = data.get('payment_method', 'cash')
     
-    # First, check availability without transaction (fast check)
     available, available_seats = Trip.check_availability(trip_id, passengers)
     if not available:
         return jsonify({'success': False, 'message': f'Sorry! Only {available_seats} seat(s) available'})
     
-    # Get trip details
     trip = Trip.find_by_id(trip_id)
     if not trip:
         return jsonify({'success': False, 'message': 'Trip not found'})
@@ -78,32 +73,67 @@ def api_book_ticket():
     user = User.find_by_id(session['user_id'])
     total_amount = trip['price'] * passengers
     
-    # Use transaction-enabled save
     booking = Booking(
         trip_id=trip_id,
         customer_id=user.id,
-        customer_name=user.name,
-        customer_email=user.email,
         passengers=passengers,
         total_amount=total_amount
     )
     
-    # This uses transaction to prevent overbooking
     result = booking.save_with_transaction()
-    
-    # Log payment method (optional)
-    if result['success']:
-        # You can add payment record here
-        pass
     
     return jsonify(result)
 
 @customer_bp.route('/bookings', methods=['GET'])
 def api_get_bookings():
+    """Get all bookings for the logged-in customer"""
     if 'user_id' not in session:
         return jsonify({'error': 'Not logged in'})
+    
+    print(f"📖 Fetching bookings for user_id: {session['user_id']}")
+    
     bookings = Booking.get_by_customer(session['user_id'])
+    
+    print(f"📦 Found {len(bookings)} bookings")
+    
     return jsonify(bookings)
+
+@customer_bp.route('/booking/<booking_ref>')
+def api_get_booking(booking_ref):
+    """Get booking details by reference"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'})
+    
+    db = Database()
+    db.connect()
+    
+    results = db.execute_query("""
+        SELECT b.booking_ref, b.passengers, b.total_amount, b.status, b.booking_date,
+               t.from_port, t.to_port, t.departure_date, t.departure_time
+        FROM bookings b
+        JOIN trips t ON b.trip_id = t.id
+        WHERE b.booking_ref = %s AND b.customer_id = %s
+    """, (booking_ref, session['user_id']))
+    
+    db.disconnect()
+    
+    if not results:
+        return jsonify({'error': 'Booking not found'})
+    
+    row = results[0]
+    booking = {
+        'ref': row[0],
+        'passengers': row[1],
+        'amount': float(row[2]),
+        'status': row[3],
+        'date': str(row[4]),
+        'from': row[5],
+        'to': row[6],
+        'departure_date': str(row[7]),
+        'time': str(row[8]) if row[8] else 'N/A'
+    }
+    
+    return jsonify(booking)
 
 @customer_bp.route('/stats', methods=['GET'])
 def api_get_stats():
@@ -112,60 +142,11 @@ def api_get_stats():
     stats = Booking.get_stats(session['user_id'])
     return jsonify(stats)
 
-@customer_bp.route('/payments')
-def api_get_payments():
-    try:
-        if 'user_id' not in session:
-            return jsonify({'error': 'Unauthorized'})
-        
-        print(f"User ID: {session['user_id']}")
-        
-        from models.database import Database
-        db = Database()
-        db.connect()
-        
-        query = """
-            SELECT t.from_port, t.to_port, t.departure_date, b.total_amount, b.status
-            FROM bookings b
-            JOIN trips t ON b.trip_id = t.id
-            WHERE b.customer_id = %s
-            ORDER BY t.departure_date DESC
-        """
-        
-        results = db.execute_query(query, (session['user_id'],))
-        db.disconnect()
-        
-        print(f"Results: {results}")
-        
-        if not results:
-            return jsonify([])
-        
-        payments = []
-        for row in results:
-            payments.append({
-                'route': f"{row[0]} → {row[1]}",
-                'method': 'Cash',
-                'date': str(row[2]),
-                'amount': f"₱{float(row[3])}",
-                'status': 'paid' if row[4] == 'confirmed' else 'pending'
-            })
-        
-        return jsonify(payments)
-        
-    except Exception as e:
-        print(f"Payment error: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
-
 @customer_bp.route('/my-reservations')
 def api_my_reservations():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'})
     
-    print(f"Fetching reservations for user: {session['user_id']}")  # Debug
-    
-    from models.database import Database
     db = Database()
     db.connect()
     
@@ -174,13 +155,11 @@ def api_my_reservations():
                b.passengers, b.total_amount, b.status
         FROM bookings b
         JOIN trips t ON b.trip_id = t.id
-        WHERE b.customer_id = %s AND t.departure_date >= CURRENT_DATE
+        WHERE b.customer_id = %s AND t.departure_date >= CURRENT_DATE AND t.status != 'completed'
         ORDER BY t.departure_date ASC
     """, (session['user_id'],))
     
     db.disconnect()
-    
-    print(f"Found {len(results) if results else 0} reservations")  # Debug
     
     reservations = []
     if results:
@@ -197,38 +176,3 @@ def api_my_reservations():
             })
     
     return jsonify(reservations)
-
-@customer_bp.route('/cancel-request', methods=['POST'])
-def cancel_booking_request():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'message': 'Please login first'})
-    
-    data = request.json
-    booking_ref = data.get('booking_ref')
-    reason = data.get('reason')
-    
-    db = Database()
-    db.connect()
-    
-    # Check if booking exists and belongs to user
-    booking = db.execute_query("""
-        SELECT id, status FROM bookings 
-        WHERE booking_ref = %s AND customer_id = %s
-    """, (booking_ref, session['user_id']))
-    
-    if not booking:
-        db.disconnect()
-        return jsonify({'success': False, 'message': 'Booking not found'})
-    
-    # Update booking status to cancelled
-    db.execute_insert("UPDATE bookings SET status = 'cancelled' WHERE booking_ref = %s", (booking_ref,))
-    
-    # Create notification for the user
-    db.execute_insert("""
-        INSERT INTO notifications (user_id, title, message, icon, color, bg)
-        VALUES (%s, 'Booking Cancelled', %s, 'x-circle', '#ef4444', '#fef2f2')
-    """, (session['user_id'], f'Your booking {booking_ref} has been cancelled.'))
-    
-    db.disconnect()
-    
-    return jsonify({'success': True, 'message': 'Booking cancelled successfully!'})

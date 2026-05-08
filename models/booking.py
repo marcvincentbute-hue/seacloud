@@ -5,13 +5,11 @@ class Booking:
     """Booking class for managing ticket bookings"""
     
     def __init__(self, id=None, booking_ref=None, trip_id=None, customer_id=None,
-                 customer_name=None, customer_email=None, passengers=1, total_amount=None):
+                 passengers=1, total_amount=None):
         self.id = id
         self.booking_ref = booking_ref or str(uuid.uuid4())[:8].upper()
         self.trip_id = trip_id
         self.customer_id = customer_id
-        self.customer_name = customer_name
-        self.customer_email = customer_email
         self.passengers = passengers
         self.total_amount = total_amount
         self.status = 'confirmed'
@@ -22,45 +20,40 @@ class Booking:
         self.db.connect()
         
         try:
-            # Start transaction
             self.db.connection.autocommit = False
             
-            # Lock the trip row to prevent concurrent bookings
-            self.db.cursor.execute("SELECT capacity FROM boats b JOIN trips t ON b.id = t.boat_id WHERE t.id = %s FOR UPDATE", (self.trip_id,))
-            boat_capacity = self.db.cursor.fetchone()
+            # Use available_seats from trips table directly
+            self.db.cursor.execute(
+                "SELECT available_seats FROM trips WHERE id = %s FOR UPDATE", 
+                (self.trip_id,)
+            )
+            result = self.db.cursor.fetchone()
             
-            if not boat_capacity:
+            if not result:
                 raise Exception("Trip not found")
             
-            # Check current total passengers
-            self.db.cursor.execute("""
-                SELECT COALESCE(SUM(passengers), 0) FROM bookings 
-                WHERE trip_id = %s AND status = 'confirmed'
-                FOR UPDATE
-            """, (self.trip_id,))
-            current_booked = self.db.cursor.fetchone()[0]
-            
-            # Check if still available
-            available_seats = boat_capacity[0] - current_booked
+            available_seats = result[0]
             
             if available_seats < self.passengers:
                 self.db.connection.rollback()
                 self.db.disconnect()
                 return {'success': False, 'message': f'Only {available_seats} seat(s) available'}
             
-            # Insert booking
+            # Update available seats
+            self.db.cursor.execute(
+                "UPDATE trips SET available_seats = available_seats - %s WHERE id = %s",
+                (self.passengers, self.trip_id)
+            )
+            
+            # Insert booking (NO customer_name/email)
             query = """
-                INSERT INTO bookings (booking_ref, trip_id, customer_id, customer_name,
-                                       customer_email, passengers, total_amount, status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO bookings (booking_ref, trip_id, customer_id, passengers, total_amount, status)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """
             params = (self.booking_ref, self.trip_id, self.customer_id, 
-                      self.customer_name, self.customer_email, 
                       self.passengers, self.total_amount, self.status)
             
             self.db.cursor.execute(query, params)
-            
-            # Commit transaction
             self.db.connection.commit()
             self.db.disconnect()
             
@@ -76,12 +69,10 @@ class Booking:
         """Original save method (without transaction - for reference)"""
         self.db.connect()
         query = """
-            INSERT INTO bookings (booking_ref, trip_id, customer_id, customer_name,
-                                   customer_email, passengers, total_amount, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO bookings (booking_ref, trip_id, customer_id, passengers, total_amount, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """
         params = (self.booking_ref, self.trip_id, self.customer_id, 
-                  self.customer_name, self.customer_email, 
                   self.passengers, self.total_amount, self.status)
         success = self.db.execute_insert(query, params)
         
@@ -98,6 +89,14 @@ class Booking:
         self.db.disconnect()
         
         if success:
+            # Also add back the seats to available_seats
+            db2 = Database()
+            db2.connect()
+            db2.execute_insert(
+                "UPDATE trips SET available_seats = available_seats + %s WHERE id = %s",
+                (self.passengers, self.trip_id)
+            )
+            db2.disconnect()
             self.status = 'cancelled'
         return success
     
@@ -107,32 +106,14 @@ class Booking:
         db = Database()
         db.connect()
         
-        # Check if booking_date column exists first
-        db.cursor.execute("""
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name = 'bookings' AND column_name = 'booking_date'
-        """)
-        has_booking_date = db.cursor.fetchone() is not None
-        
-        if has_booking_date:
-            query = """
-                SELECT b.booking_ref, b.passengers, b.total_amount, b.status, b.booking_date,
-                       t.from_port, t.to_port, t.departure_date
-                FROM bookings b
-                JOIN trips t ON b.trip_id = t.id
-                WHERE b.customer_id = %s
-                ORDER BY b.booking_date DESC
-            """
-        else:
-            query = """
-                SELECT b.booking_ref, b.passengers, b.total_amount, b.status, b.created_at,
-                       t.from_port, t.to_port, t.departure_date
-                FROM bookings b
-                JOIN trips t ON b.trip_id = t.id
-                WHERE b.customer_id = %s
-                ORDER BY b.created_at DESC
-            """
+        query = """
+            SELECT b.booking_ref, b.passengers, b.total_amount, b.status, b.booking_date,
+                t.from_port, t.to_port, t.departure_date, t.departure_time
+            FROM bookings b
+            JOIN trips t ON b.trip_id = t.id
+            WHERE b.customer_id = %s
+            ORDER BY b.booking_date DESC
+        """
         
         results = db.execute_query(query, (customer_id,))
         db.disconnect()
@@ -142,17 +123,36 @@ class Booking:
         
         bookings = []
         for row in results:
+            # Format date nicely
+            travel_date = row[7]  # departure_date
+            travel_time = row[8]  # departure_time
+            
+            # Format date to YYYY-MM-DD only
+            if travel_date:
+                travel_date_str = str(travel_date).split(' ')[0]
+            else:
+                travel_date_str = 'N/A'
+            
+            # Format time to HH:MM only
+            if travel_time:
+                travel_time_str = str(travel_time).split('.')[0][:5]
+            else:
+                travel_time_str = 'N/A'
+            
             bookings.append({
                 'ref': row[0],
                 'passengers': row[1],
                 'amount': float(row[2]),
                 'status': row[3],
-                'date': str(row[4]),
+                'date': travel_date_str,        # ← travel date, hindi booking date!
+                'time': travel_time_str,        # ← formatted time
                 'from': row[5],
                 'to': row[6],
-                'departure_date': str(row[7])
+                'departure_date': travel_date_str,
+                'booking_date': str(row[4]).split(' ')[0] if row[4] else 'N/A'
             })
-        return bookings
+        
+        return bookings 
     
     @classmethod
     def get_stats(cls, customer_id):
@@ -160,11 +160,9 @@ class Booking:
         db = Database()
         db.connect()
         
-        # Total bookings
         query1 = "SELECT COUNT(*) FROM bookings WHERE customer_id = %s"
         total = db.execute_query(query1, (customer_id,))[0][0]
         
-        # Upcoming trips
         query2 = """
             SELECT COUNT(*) FROM bookings b
             JOIN trips t ON b.trip_id = t.id
@@ -172,7 +170,6 @@ class Booking:
         """
         upcoming = db.execute_query(query2, (customer_id,))[0][0]
         
-        # Completed trips
         query3 = """
             SELECT COUNT(*) FROM bookings b
             JOIN trips t ON b.trip_id = t.id

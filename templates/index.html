@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeaCloud - Ferry Booking</title>
+    <title>SeaCloud - Pumpboat Booking</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
+    <link rel="icon" href="data:,">
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo">SeaCloud</div>
+        <div class="logo" style="font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #00e5ff, #0077b6); -webkit-background-clip: text; background-clip: text; color: transparent;">SeaCloud</div>
         <div class="nav-links">
             <a href="/">Home</a>
             <button class="btn-login" onclick="window.location.href='/login'">Sign In</button>
@@ -18,8 +19,8 @@
     </nav>
 
     <div class="hero">
-        <h1>Book your <span>ferry tickets</span></h1>
-        <p>Plan your trip to beautiful islands in the Philippines</p>
+        <h1>Book your <span>Pumpboat tickets</span></h1>
+        <p>Fast and convenient travel</p>
     </div>
 
     <div class="booking-container">
@@ -51,16 +52,6 @@
                 </div>
             </div>
 
-            <div class="weather-section">
-                <h3>Weather at Ports</h3>
-                <div id="weatherButuan" class="weather-card">
-                    <div class="weather-loading">Loading weather data...</div>
-                </div>
-                <div id="weatherMagallanes" class="weather-card">
-                    <div class="weather-loading">Loading weather data...</div>
-                </div>
-            </div>
-
             <!-- Passengers Section with counter -->
             <div class="passengers-section">
                 <div class="passenger-item" onclick="togglePassengerModal()">
@@ -68,7 +59,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16" style="display: inline; margin-right: 8px;">
                             <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
                         </svg>
-                        Passengers, pets & vehicles
+                        Passengers
                     </span>
                     <span id="passengerSummary">1 adult</span>
                 </div>
@@ -135,8 +126,8 @@
         <footer class="footer">
         <div class="footer-container">
             <div class="footer-about">
-                <h3>⛴️ About SeaCloud</h3>
-                <p>SeaCloud is a cloud-based ferry ticketing and reservation system that allows passengers to book ferry tickets online while operators manage schedules, seat capacity, and payments in real-time.</p>
+                <h3>About SeaCloud</h3>
+                <p>SeaCloud is a cloud-based pumpboat booking system for commuters traveling; and reservation system that allows passengers to book pumpboat tickets online.</p>
             </div>
             <div class="footer-links">
                 <h4>Quick Links</h4>
@@ -146,16 +137,17 @@
             </div>
             <div class="footer-contact">
                 <h4>Contact Us</h4>
-                <p>📞 +63 912 345 6789</p>
-                <p>✉️ support@seacloud.com</p>
-                <p>📍 Butuan City, Philippines</p>
+                <p>📞 09071021533</p>
+                <p>✉️ Sea.cloud2026@gmail.com</p>
+                <p>Magallanes, Agusan del Norte, Philippines</p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 SeaCloud Ferry Booking System. All rights reserved.</p>
+            <p>&copy; 2026 SeaCloud Pumpboat Booking System. All rights reserved.</p>
         </div>
     </footer>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/homepage.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
 </body>
 </html>

@@ -15,12 +15,10 @@ app = Flask(__name__,
 app.secret_key = Config.SECRET_KEY
 CORS(app)
 
-# ========== DIRECT HOME ROUTE (ADD THIS) ==========
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# ========== DATABASE CONNECTION FUNCTION ==========
 def get_db_connection():
     try:
         conn = psycopg2.connect(
@@ -35,18 +33,64 @@ def get_db_connection():
         print(f"Database error: {e}")
         return None
     
-# ========== INITIALIZE DATABASE TABLES ==========
 def init_database():
     db = Database()
     db.connect()
+    
     queries = [
-        "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name VARCHAR(30) NOT NULL, email VARCHAR(20) UNIQUE NOT NULL, password VARCHAR(64) NOT NULL, phone VARCHAR(11), role VARCHAR(20) DEFAULT 'customer', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
-        "CREATE TABLE IF NOT EXISTS boats (id SERIAL PRIMARY KEY, name VARCHAR(30) NOT NULL, capacity INT NOT NULL, operator_id INT REFERENCES users(id), status VARCHAR(20) DEFAULT 'available', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
-        "CREATE TABLE IF NOT EXISTS trips (id SERIAL PRIMARY KEY, boat_id INT REFERENCES boats(id), from_port VARCHAR(15) NOT NULL, to_port VARCHAR(15) NOT NULL, departure_date DATE NOT NULL, departure_time TIME NOT NULL, price DECIMAL(10,2) NOT NULL, operator_id INT REFERENCES users(id), status VARCHAR(20) DEFAULT 'scheduled', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
-        "CREATE TABLE IF NOT EXISTS bookings (id SERIAL PRIMARY KEY, booking_ref VARCHAR(30) UNIQUE NOT NULL, trip_id INT REFERENCES trips(id), customer_id INT REFERENCES users(id), customer_name VARCHAR(30) NOT NULL, customer_email VARCHAR(20) NOT NULL, passengers INT DEFAULT 1, total_amount DECIMAL(10,2) NOT NULL, status VARCHAR(20) DEFAULT 'confirmed', booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+        # Users table
+        """CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(60) NOT NULL,
+            email VARCHAR(80) UNIQUE NOT NULL,
+            password VARCHAR(64) NOT NULL,
+            phone VARCHAR(15),
+            role VARCHAR(10) DEFAULT 'customer',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""",
+        
+        # Boats table
+        """CREATE TABLE IF NOT EXISTS boats (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(50) NOT NULL,
+            capacity SMALLINT NOT NULL,
+            status VARCHAR(12) DEFAULT 'available'
+        )""",
+        
+        # Trips table - WALANG COMMENT SA LOOB!
+        """CREATE TABLE IF NOT EXISTS trips (
+            id SERIAL PRIMARY KEY,
+            boat_id INTEGER REFERENCES boats(id) ON DELETE CASCADE,
+            from_port VARCHAR(50) NOT NULL,
+            to_port VARCHAR(50) NOT NULL,
+            departure_date DATE NOT NULL,
+            departure_time TIME NOT NULL,
+            price NUMERIC(8,2) NOT NULL,
+            available_seats SMALLINT NOT NULL,
+            status VARCHAR(10) DEFAULT 'scheduled'
+        )""",
+        
+        # Bookings table
+        """CREATE TABLE IF NOT EXISTS bookings (
+            id SERIAL PRIMARY KEY,
+            booking_ref VARCHAR(8) UNIQUE NOT NULL,
+            trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
+            customer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            passengers SMALLINT DEFAULT 1,
+            total_amount NUMERIC(8,2) NOT NULL,
+            status VARCHAR(10) DEFAULT 'confirmed',
+            booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""",
+        
+        # Indexes for faster queries
+        """CREATE INDEX IF NOT EXISTS idx_trips_search ON trips(from_port, to_port, departure_date)""",
+        """CREATE INDEX IF NOT EXISTS idx_bookings_customer ON bookings(customer_id)""",
+        """CREATE INDEX IF NOT EXISTS idx_trips_date ON trips(departure_date)""",
     ]
+    
     for query in queries:
         db.execute_insert(query)
+    
     db.disconnect()
     print("✅ Database initialized!")
 
