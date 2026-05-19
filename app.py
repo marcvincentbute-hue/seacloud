@@ -92,7 +92,7 @@ def init_database():
         db.execute_insert(query)
     
     db.disconnect()
-    print("✅ Database initialized!")
+    print("Database initialized!")
 
 init_database()
 

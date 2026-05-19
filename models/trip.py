@@ -6,8 +6,8 @@ class Trip:
                  departure_date=None, departure_time=None, price=None, operator_id=None):
         self.id = id
         self.boat_id = boat_id
-        self.origin = origin           # ← from_port naging origin
-        self.destination = destination # ← to_port naging destination
+        self.origin = origin           
+        self.destination = destination 
         self.departure_date = departure_date
         self.departure_time = departure_time
         self.price = price

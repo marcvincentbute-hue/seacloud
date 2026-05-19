@@ -10,7 +10,20 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo" style="font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #00e5ff, #0077b6); -webkit-background-clip: text; background-clip: text; color: transparent;">SeaCloud</div>
+        <div class="logo-wrapper" onclick="window.location.href='/'" style="display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #00b8d4, #0077b6); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+                    <path d="M2 12c1.5-2 3.5-3 5.5-1s4 2 5.5 0 3.5-1 5.5 1" />
+                    <path d="M2 17c1.5-2 3.5-3 5.5-1s4 2 5.5 0 3.5-1 5.5 1" />
+                    <path d="M9 5l3-3 3 3" />
+                    <path d="M12 2v10" />
+                </svg>
+            </div>
+            <span style="font-size: 24px; font-weight: 800; font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #00e5ff, #0077b6); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 0; line-height: 1;">
+                SeaCloud
+            </span>
+        </div>
+
         <div class="nav-links">
             <a href="/">Home</a>
             <button class="btn-login" onclick="window.location.href='/login'">Sign In</button>
